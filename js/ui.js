@@ -1,21 +1,14 @@
 /* ===========================================================================
    AfterBell — ui.js
-   Tiny helpers for building HTML. No framework.
+   Small helpers shared by every screen. No framework.
    ===========================================================================
-   Each screen in screens.js returns a plain HTML string, app.js drops it into
-   the page, and one delegated click handler reads `data-action` attributes.
-   That is the whole architecture. It is about 20 lines of machinery instead of
-   a framework, which means I can explain every line of it.
+   Screens return plain HTML strings, app.js puts them on the page, and one
+   delegated click handler reads `data-action`. That is the whole machinery.
 =========================================================================== */
 
 import { formatTime } from './matching.js';
 
-/**
- * Escape anything that came from data before putting it in HTML.
- * Even though all of this data is mine, escaping is the habit: the moment a
- * real student types their name in Stage 2, this is what stops that name from
- * being treated as markup.
- */
+/** Escape data before it goes into HTML. */
 export function esc(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -25,91 +18,70 @@ export function esc(value) {
     .replace(/'/g, '&#39;');
 }
 
-/** A Lucide icon. Lucide replaces these <i> tags after each render. */
+/** A Lucide icon. Lucide swaps these for inline SVG after each render. */
 export function icon(name, cls = 'i') {
   return `<i data-lucide="${esc(name)}" class="${esc(cls)}" aria-hidden="true"></i>`;
 }
 
-/** "MON 10/26" for the left column of the departure board. */
+/** "MON 10/26" */
 export function dayLabel(iso) {
   const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   const y = Number(iso.slice(0, 4));
   const mo = Number(iso.slice(5, 7));
   const d = Number(iso.slice(8, 10));
-  // Date is only used for the weekday name, so UTC keeps it stable everywhere.
-  const dow = days[new Date(Date.UTC(y, mo - 1, d)).getUTCDay()];
-  return `${dow} ${mo}/${d}`;
+  return `${days[new Date(Date.UTC(y, mo - 1, d)).getUTCDay()]} ${mo}/${d}`;
 }
 
 export { formatTime };
 
-/**
- * "Jalen M." — the only name format this app ever displays, for anyone.
- * Staff are the one exception: they are already stored as a title plus a
- * surname ("Mr." + "Moreno"), which is how a student would actually say it,
- * so they do not get the trailing initial dot.
- */
+/** "Jalen M." — the only name format this app displays. Staff keep their title. */
 export function personName(person) {
   if (!person) return 'Unknown';
   if (person.role === 'organizer') return `${person.firstName} ${person.lastInitial}`;
   return `${person.firstName} ${person.lastInitial}.`;
 }
 
+export function initials(person) {
+  if (!person) return '?';
+  return `${person.firstName[0]}${person.lastInitial[0]}`.toUpperCase();
+}
+
+export function avatar(person, cls = '') {
+  return `<span class="avatar ${cls}" aria-hidden="true">${esc(initials(person))}</span>`;
+}
+
 /* ---------------------------------------------------------------------------
    STATUS
-
-   Four internal codes, three visual treatments. Every one carries a text
-   label, and the three swatches differ in shape as well as color, so the
-   status is readable without seeing color at all.
+   Four internal codes, three looks. Every one carries a word, and the three
+   dots differ in SHAPE as well as fill, so none of this depends on colour.
 --------------------------------------------------------------------------- */
 export const STATUS_TEXT = {
   confirmed: 'Ride confirmed',
-  own: 'Own ride',          // on the roster but didn't need AfterBell
+  own: 'Own ride',
   waiting: 'Waiting for match',
   none: 'No ride yet',
 };
 
-export function statusChip(code, overrideText) {
+export function statusPill(code, overrideText) {
   const variant = code === 'own' ? 'confirmed' : code;
   const text = overrideText || STATUS_TEXT[code] || code;
-  return `<span class="chip chip--${esc(variant)}">
-    <span class="swatch" aria-hidden="true"></span>${esc(text)}
+  return `<span class="status status--${esc(variant)}">
+    <span class="status__dot" aria-hidden="true"></span>${esc(text)}
   </span>`;
 }
 
-/** Small uppercase tag used to label which activity a rider is from. */
-export function activityChip(label) {
-  return `<span class="chip chip--activity">${esc(label)}</span>`;
+/* ---------------------------------------------------------------------------
+   LAYOUT BITS
+--------------------------------------------------------------------------- */
+export function head(kicker, title, sub = '') {
+  return `<header class="head">
+    ${kicker ? `<p class="head__kicker">${esc(kicker)}</p>` : ''}
+    <h1>${esc(title)}</h1>
+    ${sub ? `<p class="head__sub">${esc(sub)}</p>` : ''}
+  </header>`;
 }
 
-/** A plain 1px-bordered progress meter. */
-export function meter(done, total) {
-  const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-  return `<div class="meter" role="img" aria-label="${done} of ${total} have rides">
-    <div class="meter__fill" style="width:${pct}%"></div>
-  </div>`;
-}
-
-/** CSS class for one roster square. */
-export function spotClass(code) {
-  if (code === 'confirmed' || code === 'own') return 'spot spot--confirmed';
-  if (code === 'waiting') return 'spot spot--waiting';
-  return 'spot';
-}
-
-/** A titled section with a hairline rule under the heading. */
-export function block(title, bodyHtml, note = '') {
-  return `<section class="block">
-    <div class="block__head">
-      <h2>${esc(title)}</h2>
-      ${note ? `<span class="block__note">${esc(note)}</span>` : ''}
-    </div>
-    ${bodyHtml}
-  </section>`;
-}
-
-/** A notice. Deliberately black-and-white: red in this app means "filled". */
-export function notice(title, body, iconName = 'triangle-alert') {
+export function notice(title, body, iconName = 'info') {
   return `<div class="notice">
     ${icon(iconName)}
     <div>
@@ -119,6 +91,20 @@ export function notice(title, body, iconName = 'triangle-alert') {
   </div>`;
 }
 
-export function empty(html) {
-  return `<div class="empty">${html}</div>`;
+export function emptyState(iconName, title, body) {
+  return `<div class="empty">
+    <div class="empty__icon">${icon(iconName)}</div>
+    <h3>${esc(title)}</h3>
+    <p>${esc(body)}</p>
+  </div>`;
+}
+
+/**
+ * A map block. The options are serialised into the element and drawn by
+ * map.js after the screen is on the page.
+ */
+export function mapBlock(options, cls = '') {
+  return `<div class="mapwrap ${cls}">
+    <div class="map" data-map='${esc(JSON.stringify(options))}'></div>
+  </div>`;
 }

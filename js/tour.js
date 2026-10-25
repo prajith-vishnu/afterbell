@@ -14,6 +14,8 @@
 import * as S from './state.js';
 import * as Screens from './screens.js';
 import { view } from './view.js';
+import { buildRidePlanRows, ridePlanFilename } from './export.js';
+import { esc } from './ui.js';
 
 const SATURDAY = 'e-band-sat';   // the contest the readiness demo runs on
 const TUESDAY = 'e-vball-tue';   // the trip that produces a cross-activity car
@@ -257,7 +259,7 @@ const SECTIONS = [
         : '<section class="ab-card"><p class="ab-label">No shared car in this run.</p></section>';
     },
     async play(section, phone) {
-      await highlightEach([...phone.querySelectorAll('.riders .chip--activity')]);
+      await highlightEach([...phone.querySelectorAll('.person__act')]);
     },
   },
 
@@ -289,6 +291,45 @@ const SECTIONS = [
     },
     async play(section, phone) {
       await highlightEach([...section.querySelectorAll('.handoff__code')], 900);
+    },
+  },
+
+  {
+    id: 'export',
+    lazy: true,
+    title: 'And the director walks out with the plan',
+    note: 'One CSV: who is in whose car, the pickup time, the handoff code \u2014 and the students it could not seat, with the reason, because a plan that quietly drops them is the problem this app exists to fix.',
+    prepare: () => ensureMatched(),
+    render: () => {
+      // The real rows the real export writes. Nothing is retyped here.
+      const rows = buildRidePlanRows(SATURDAY);
+      const columns = ['Student', 'Group/Section', 'Driver', 'Car', 'Handoff Code', 'Status'];
+      const preview = [...rows.filter((r) => !r.Driver).slice(0, 2), ...rows.filter((r) => r.Driver).slice(0, 5)];
+
+      return `<section class="pad" style="padding-top:20px;padding-bottom:20px">
+        <p class="label">${esc(ridePlanFilename(SATURDAY))}</p>
+        <p class="row__meta" style="margin:8px 0 14px">${rows.length} students in the file.</p>
+        <div class="csvwrap">
+          <table class="csv">
+            <thead><tr>${columns.map((c) => `<th>${esc(c)}</th>`).join('')}</tr></thead>
+            <tbody>
+              ${preview
+                .map(
+                  (row) => `<tr>${columns
+                    .map((c) => `<td>${esc(row[c] || '\u2014')}</td>`)
+                    .join('')}</tr>`
+                )
+                .join('')}
+            </tbody>
+          </table>
+        </div>
+        <button class="btn" style="margin-top:16px" data-action="export-plan"
+                data-event="${esc(SATURDAY)}">Export ride plan</button>
+      </section>`;
+    },
+    async play(section, phone) {
+      const button = phone.querySelector('[data-action="export-plan"]');
+      await tapPulse(phone, button);
     },
   },
 ];

@@ -213,6 +213,17 @@ const PARENT_ROWS = [
   ['p10','Olivia','D', 'winn-ridge',  'h-dumont',  ['s28','s53']],
 ];
 
+/* ---------------------------------------------------------------------------
+   CHAPERONES — adults who are not a parent of anyone on the roster, but who
+   travel with the group and can be asked to drive. They are ordinary adult
+   drivers as far as the law is concerned: no passenger-age limit, no curfew.
+   COLUMNS: id, firstName, lastInitial, neighborhoodId, seats
+--------------------------------------------------------------------------- */
+// prettier-ignore
+const CHAPERONE_ROWS = [
+  ['c-rivera', 'Coach', 'Rivera', 'providence', 4],
+];
+
 // ORGANIZER COLUMNS: id, firstName, lastInitial, activityId
 // prettier-ignore
 const ORGANIZER_ROWS = [
@@ -223,19 +234,69 @@ const ORGANIZER_ROWS = [
   ['o-boone','Coach','Boone','xc'],
 ];
 
+
+/* ===========================================================================
+   CARS — what each driver actually shows up in.
+   ===========================================================================
+   Display only. The matching algorithm never reads these: capacity comes from
+   the `seats` on a ride offer, because a seven-seater with four people
+   already in it has three seats, not seven.
+
+   A rider waiting in a dark parking lot is looking for a colour and a shape,
+   so the ride card says "Silver Honda Odyssey" next to the handoff code.
+   COLUMNS: personId -> [colour, model]
+=========================================================================== */
+// prettier-ignore
+const CARS = {
+  // Parents
+  p01: ['Silver',  'Honda Odyssey'],
+  p02: ['White',   'Toyota Sienna'],
+  p03: ['Dark Blue','Chevrolet Tahoe'],
+  p04: ['Gray',    'Toyota Highlander'],
+  p05: ['Black',   'Ford Explorer'],
+  p06: ['Red',     'Honda CR-V'],
+  p07: ['White',   'Kia Carnival'],
+  p08: ['Silver',  'Toyota Sienna'],
+  p09: ['Beige',   'Subaru Outback'],
+  p10: ['Dark Gray','Nissan Rogue'],
+  // Fully licensed seniors
+  s51: ['White',   'Toyota RAV4'],
+  s52: ['Black',   'Honda Civic'],
+  s53: ['Blue',    'Ford Escape'],
+  // Chaperone
+  'c-rivera': ['White', 'Chevrolet Tahoe'],
+  // Teens in their first 12 months
+  s54: ['Silver',  'Toyota Corolla'],
+  s59: ['Red',     'Hyundai Elantra'],
+  s60: ['Gray',    'Honda Accord'],
+};
+
 /** Expand the compact tables above into the object shape the app uses. */
 export const PEOPLE = [
   ...STUDENT_ROWS.map(([id, firstName, lastInitial, grade, age, neighborhoodId, householdId, approved, driverKind, provisionalUnder12Months]) => ({
     id, role: 'student', firstName, lastInitial, grade, age,
     neighborhoodId, householdId, approved,
     driverKind, provisionalUnder12Months,
+    carColor: CARS[id] ? CARS[id][0] : null,
+    carModel: CARS[id] ? CARS[id][1] : null,
   })),
   ...PARENT_ROWS.map(([id, firstName, lastInitial, neighborhoodId, householdId, childIds]) => ({
     id, role: 'parent', firstName, lastInitial,
     age: 44, // adults are over the passenger-age limit; the exact number never matters
     neighborhoodId, householdId, approved: true,
     driverKind: 'parent', provisionalUnder12Months: false,
+    carColor: CARS[id] ? CARS[id][0] : null,
+    carModel: CARS[id] ? CARS[id][1] : null,
     childIds,
+  })),
+  ...CHAPERONE_ROWS.map(([id, firstName, lastInitial, neighborhoodId, seats]) => ({
+    id, role: 'chaperone', firstName, lastInitial,
+    age: 38, // an adult, so no passenger-age limit applies to their car
+    neighborhoodId, householdId: `h-${id}`, approved: true,
+    driverKind: 'parent', provisionalUnder12Months: false,
+    chaperoneSeats: seats,
+    carColor: CARS[id] ? CARS[id][0] : null,
+    carModel: CARS[id] ? CARS[id][1] : null,
   })),
   ...ORGANIZER_ROWS.map(([id, firstName, lastInitial, activityId]) => ({
     id, role: 'organizer', firstName, lastInitial, age: 40,
@@ -477,6 +538,9 @@ const OFFER_ROWS = [
   ['of-sat-s53','s53','e-band-sat', 2, 'Picking up my sister, two more fit'],
   ['of-sat-s52','s52','e-band-sat', 3, 'Three open'],
   ['of-sat-s54','s54','e-band-sat', 3, 'Three open'],
+  // Held back from the automatic run on purpose: a chaperone's car is
+  // something the director decides to use, not something the matcher spends.
+  ['of-sat-rivera','c-rivera','e-band-sat', 4, 'Chaperone — assign by hand'],
 ];
 
 
@@ -583,6 +647,9 @@ export function buildSeedState() {
     const event = eventsById[eventId];
     return {
       id, driverId, eventId, seats, note,
+      // The matcher never spends a chaperone's seats; an organizer assigns
+      // them deliberately from the unmatched list.
+      manualOnly: peopleById[driverId].role === 'chaperone',
       direction: event.direction,
       destinationId: event.destinationId,
       timeISO: event.rideTimeISO,

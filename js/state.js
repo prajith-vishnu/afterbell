@@ -23,7 +23,27 @@ export const state = {
   // Set by the last Fill the Gaps run, so the organizer screen can animate
   // the squares and list the reasons. Cleared when you switch events.
   lastFill: null,
+
+  // Everything that has actually happened this session: approvals, requests,
+  // matches, pickups. The Rides tab reads this. It lives here rather than in
+  // notifications.js so that module can import state without a cycle.
+  log: [],
 };
+
+/**
+ * Record something that just happened, for the people it happened to.
+ * Called by the actions below — never with made-up content.
+ */
+export function logEvent(audience, icon, text) {
+  state.log.push({
+    id: `n${state.log.length + 1}`,
+    audience: Array.isArray(audience) ? audience : [audience],
+    icon,
+    text,
+    at: Date.now(),
+    live: true,
+  });
+}
 
 export { DEMO_ACCOUNTS, handoffCode };
 
@@ -31,6 +51,8 @@ export { DEMO_ACCOUNTS, handoffCode };
 export function resetDemo() {
   state.data = buildSeedState();
   state.lastFill = null;
+  state.log = [];
+  state.signedIn = true;
 }
 
 export function setRole(role) {
@@ -211,6 +233,7 @@ export function requestRide(studentId, eventId) {
     neighborhoodId: student.neighborhoodId,
   });
   if (!event.needsRide.includes(studentId)) event.needsRide.push(studentId);
+  logEvent(studentId, 'hand', `Ride requested for ${event.title}.`);
   return { ok: true, message: 'Ride requested. You are in the next matching run.' };
 }
 
@@ -247,18 +270,224 @@ export function offerSeats(driverId, eventId, seats, note = '') {
 export function approveStudent(studentId) {
   const student = personById(studentId);
   student.approved = true;
+
+  const parent = state.data.people.find((p) => (p.childIds || []).includes(studentId));
+  logEvent(
+    [studentId, parent ? parent.id : studentId],
+    'user-round-check',
+    `${student.firstName}'s account was approved by a parent.`
+  );
   return { ok: true, message: `${student.firstName} can now request and accept rides.` };
 }
 
 export function markPickedUp(rideId, value = true) {
   const ride = rideById(rideId);
   ride.pickedUp = value;
-  ride.pickedUpAt = value ? '11:38p' : null; // demo stamp
+  ride.pickedUpAt = value ? '6:42 AM' : null; // demo stamp
+
+  if (value) {
+    const names = ride.riderIds.map((id) => personById(id).firstName).join(', ');
+    logEvent(
+      [...ride.riderIds, ride.driverId],
+      'check-check',
+      `${names} picked up at ${ride.pickedUpAt}.`
+    );
+  }
   return { ok: true };
 }
 
 export function setMaxDetour(miles) {
   state.data.settings.maxDetourMiles = miles;
+}
+
+/* ---------------------------------------------------------------------------
+   MANUAL ASSIGNMENT
+   ---------------------------------------------------------------------------
+   The algorithm says who it could not seat and why. Sometimes the answer is a
+   grown-up: a chaperone, or a parent with a spare seat, who the director can
+   simply ask. This is that — a real assignment that changes real state.
+
+   It skips the DETOUR rule on purpose, because a human has decided the drive
+   is worth it. It does not skip seat capacity, and it does not skip the Texas
+   provisional-licence rules: those are law, not preference, so only adults
+   appear in the list.
+--------------------------------------------------------------------------- */
+
+/** Adults who could be asked to drive this trip, with seats left. */
+export function adultDriversFor(eventId) {
+  const event = eventById(eventId);
+
+  return state.data.people
+    .filter((p) => p.driverKind === 'parent' && p.age >= 21)
+    .map((person) => {
+      const offerId = `of-${eventId}-${person.id}`;
+      const existing =
+        state.data.offers.find((o) => o.driverId === person.id && o.eventId === eventId) || null;
+      const seats = existing ? existing.seats : person.chaperoneSeats || 0;
+      const used = state.data.rides
+        .filter((r) => r.offerId === (existing ? existing.id : offerId))
+        .reduce((sum, r) => sum + r.riderIds.length, 0);
+      return {
+        person,
+        offerId: existing ? existing.id : offerId,
+        open: seats - used,
+        car: [person.carColor, person.carModel].filter(Boolean).join(' '),
+      };
+    })
+    .filter((entry) => entry.open > 0)
+    .sort((a, b) => b.open - a.open || a.person.id.localeCompare(b.person.id));
+}
+
+/** Put one student in one adult's car, by hand. */
+export function assignManually(studentId, eventId, driverId) {
+  const d = state.data;
+  const event = eventById(eventId);
+  const driver = personById(driverId);
+  const student = personById(studentId);
+
+  const candidate = adultDriversFor(eventId).find((entry) => entry.person.id === driverId);
+  if (!candidate) {
+    return { ok: false, message: `${driver.firstName}'s car is full.` };
+  }
+
+  // Make the offer real if the adult had not formally offered yet.
+  let offer = d.offers.find((o) => o.id === candidate.offerId);
+  if (!offer) {
+    offer = {
+      id: candidate.offerId,
+      driverId,
+      eventId,
+      seats: driver.chaperoneSeats || 1,
+      note: 'Assigned by the organizer',
+      direction: event.direction,
+      destinationId: event.destinationId,
+      timeISO: event.rideTimeISO,
+      neighborhoodId: driver.neighborhoodId,
+      manualOnly: true,
+    };
+    d.offers.push(offer);
+  }
+
+  let ride = d.rides.find((r) => r.offerId === offer.id);
+  if (!ride) {
+    ride = {
+      id: `ride-${offer.id}`,
+      offerId: offer.id,
+      driverId,
+      eventId,
+      riderIds: [],
+      requestIds: [],
+      pickedUp: false,
+      matchedBy: 'organizer',
+    };
+    d.rides.push(ride);
+  }
+
+  const requestId = `rq-${eventId}-${studentId}`;
+  let request = d.requests.find((r) => r.id === requestId);
+  if (!request) {
+    request = {
+      id: requestId,
+      studentId,
+      eventId,
+      status: 'pending',
+      activityId: event.activityId,
+      direction: event.direction,
+      destinationId: event.destinationId,
+      timeISO: event.rideTimeISO,
+      neighborhoodId: student.neighborhoodId,
+    };
+    d.requests.push(request);
+  }
+
+  ride.riderIds.push(studentId);
+  ride.requestIds.push(request.id);
+  request.status = 'assigned';
+  delete request.unmatchedReason;
+  delete request.unmatchedRule;
+
+  logEvent(
+    studentId,
+    'car-front',
+    `${driver.firstName} ${driver.lastInitial}. is driving you to ${event.title}.`
+  );
+
+  return {
+    ok: true,
+    message: `${student.firstName} is riding with ${driver.firstName} ${driver.lastInitial}.`,
+  };
+}
+
+/* ---------------------------------------------------------------------------
+   ACCOUNT
+--------------------------------------------------------------------------- */
+
+/**
+ * Change which neighbourhood someone lives in.
+ * Their open ride requests move with them, because the matcher reads the
+ * neighbourhood off the request, and a stale one would put them in a car
+ * going the wrong way.
+ */
+export function updateNeighborhood(personId, neighborhoodId) {
+  const person = personById(personId);
+  person.neighborhoodId = neighborhoodId;
+
+  for (const request of state.data.requests) {
+    if (request.studentId === personId && request.status !== 'assigned') {
+      request.neighborhoodId = neighborhoodId;
+    }
+  }
+  for (const offer of state.data.offers) {
+    if (offer.driverId === personId) offer.neighborhoodId = neighborhoodId;
+  }
+  return { ok: true, message: `Neighborhood updated to ${hoodName(neighborhoodId)}.` };
+}
+
+/**
+ * Delete someone's account and everything attached to it.
+ *
+ * This really does remove the data rather than hide it: their ride requests,
+ * their seat offers, the cars built from those offers, their seat in anyone
+ * else's car, and their notifications. In Stage 1 everything lives in memory,
+ * so "delete" means delete; "Reset demo data" is what brings the sample
+ * person back.
+ */
+export function deleteAccount(personId) {
+  const d = state.data;
+  const person = personById(personId);
+
+  d.requests = d.requests.filter((r) => r.studentId !== personId);
+
+  // Their seat in someone else's car.
+  for (const ride of d.rides) {
+    const index = ride.riderIds.indexOf(personId);
+    if (index !== -1) {
+      ride.riderIds.splice(index, 1);
+      ride.requestIds.splice(index, 1);
+    }
+  }
+
+  // Cars they were driving, and the offers behind them.
+  const theirOffers = d.offers.filter((o) => o.driverId === personId).map((o) => o.id);
+  d.rides = d.rides.filter((ride) => !theirOffers.includes(ride.offerId) && ride.riderIds.length);
+  d.offers = d.offers.filter((o) => o.driverId !== personId);
+
+  // Roster memberships and any event expecting them.
+  d.memberships = d.memberships.filter((m) => m.studentId !== personId);
+  for (const event of d.events) {
+    event.needsRide = event.needsRide.filter((id) => id !== personId);
+  }
+
+  d.people = d.people.filter((p) => p.id !== personId);
+  for (const parent of d.people) {
+    if (parent.childIds) parent.childIds = parent.childIds.filter((id) => id !== personId);
+  }
+
+  state.log = state.log.filter((entry) => !entry.audience.includes(personId));
+  state.signedIn = false;
+  state.lastFill = null;
+
+  return { ok: true, message: `${person ? person.firstName : 'That account'} and all of its data were deleted.` };
 }
 
 /* ---------------------------------------------------------------------------
@@ -294,7 +523,9 @@ export function runFillTheGaps(eventId) {
   const eligible = d.requests.filter(
     (r) => personById(r.studentId).approved && onSameTripAs(event, r, windowMinutes)
   );
-  const offersOnTrip = d.offers.filter((o) => onSameTripAs(event, o, windowMinutes));
+  const offersOnTrip = d.offers.filter(
+    (o) => !o.manualOnly && onSameTripAs(event, o, windowMinutes)
+  );
 
   const result = fillTheGaps({
     requests: eligible,
@@ -352,6 +583,16 @@ export function runFillTheGaps(eventId) {
     (a) => requestById[a.requestId] && requestById[a.requestId].activityId !== event.activityId
   );
 
+  // One log entry per student the algorithm just seated.
+  for (const assignment of forThisEvent) {
+    const driver = personById(assignment.driverId);
+    logEvent(
+      assignment.studentId,
+      'car-front',
+      `Matched for ${event.title} — riding with ${driver.firstName} ${driver.lastInitial}.`
+    );
+  }
+
   state.lastFill = {
     eventId,
     // Order matters: the squares animate in exactly the order the algorithm
@@ -380,7 +621,7 @@ export function previewTrip(eventId) {
 
   return fillTheGaps({
     requests: d.requests.filter((r) => personById(r.studentId).approved && onSameTripAs(event, r, w)),
-    offers: d.offers.filter((o) => onSameTripAs(event, o, w)),
+    offers: d.offers.filter((o) => !o.manualOnly && onSameTripAs(event, o, w)),
     people: d.people,
     neighborhoods: d.neighborhoods,
     existingRides: d.rides,

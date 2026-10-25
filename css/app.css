@@ -1,0 +1,732 @@
+/* ===========================================================================
+   AfterBell — app.css
+   Ride-app visual system: warm peach and orange, map first, soft and rounded.
+   ===========================================================================
+   COLOUR RULE
+   White and very light peach surfaces, near-black text, one vivid orange
+   accent. Orange carries: primary buttons, the location dot, route lines, the
+   active tab, selected chips and rows, filled dial ticks, and the
+   "Ride confirmed" status dot.
+
+   CONTRAST RULE
+   White on #FF6A13 is only 3.1:1, so small white text sits on the deeper
+   #E85A00 instead. Big bold type (24px+ / 18.66px+ at 700) is allowed on the
+   bright orange, which is where the hero numbers live.
+
+   STATUS RULE
+   A status is never a colour on its own. Every status dot sits next to a word,
+   and the three dots differ in shape as well as fill, so they are still
+   distinguishable in greyscale or by someone who cannot separate the hues.
+=========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. TOKENS
+   -------------------------------------------------------------------------- */
+:root {
+  --black: #1A1A1A;        /* near-black text, 15.9:1 on white */
+  --white: #FFFFFF;
+  --peach: #FFF5EF;        /* the page behind the phone, and soft surfaces */
+  --surface: #FFF5EF;      /* light warm fills */
+  --surface-2: #FFE9DC;    /* selected rows, soft highlights */
+  --line: #F0E6DE;
+  --muted: #8C8C8C;        /* secondary text — 4.6:1 on white */
+
+  --orange: #FF6A13;       /* the accent */
+  --orange-deep: #E85A00;  /* behind small white text, for contrast */
+  --orange-tint: #FFE9DC;
+
+  /* Kept so the dial's own tokens stay readable in one place. */
+  --tick-empty: #EADFD6;
+
+  --shadow-soft: 0 6px 20px rgba(26, 26, 26, 0.06);
+  --sheet-shadow: 0 -10px 30px rgba(26, 26, 26, 0.07);
+
+  --r-card: 28px;
+  --r-tile: 20px;
+  --r-pill: 999px;
+  --r-sheet: 28px;
+
+  --tap: 44px;
+  --btn-h: 56px;
+  --col: 430px;            /* the phone-width column */
+
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--peach);
+  color: var(--black);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+h1 { font-size: 28px; }
+h2 { font-size: 20px; }
+h3 { font-size: 17px; }
+p { margin: 0; }
+a { color: var(--black); text-underline-offset: 3px; }
+
+:focus-visible { outline: 2px solid var(--orange-deep); outline-offset: 2px; border-radius: 8px; }
+.on-black :focus-visible, .sheet--dark :focus-visible { outline-color: var(--white); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip-link { position: absolute; left: -9999px; top: 0; background: var(--black); color: #fff; padding: 10px 14px; z-index: 60; }
+.skip-link:focus { left: 8px; top: 8px; }
+
+/* --------------------------------------------------------------------------
+   2. THE PHONE COLUMN
+   Mobile-first. On a laptop the app stays phone width and centres, with the
+   light grey page behind it.
+   -------------------------------------------------------------------------- */
+.app {
+  width: 100%;
+  max-width: var(--col);
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--white);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 520px) {
+  .app { box-shadow: var(--shadow-soft); }
+}
+
+#main { flex: 1; padding-bottom: 92px; }   /* room for the tab bar */
+#main:focus { outline: none; }
+
+.pad { padding: 0 16px; }
+.pad + .pad { margin-top: 24px; }
+.stack { display: grid; gap: 12px; }
+.stack--lg { display: grid; gap: 20px; }
+
+/* --------------------------------------------------------------------------
+   3. DEMO BAR — the role switcher. Hidden entirely in tour mode.
+   -------------------------------------------------------------------------- */
+.demobar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-bottom: 1px solid var(--line);
+  overflow-x: auto; scrollbar-width: none;
+}
+.demobar::-webkit-scrollbar { display: none; }
+.demobar__label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted); flex: none;
+}
+.rolechip {
+  flex: none; min-height: 36px; padding: 0 14px;
+  border-radius: var(--r-pill); border: 1px solid var(--line);
+  background: var(--white); color: var(--muted);
+  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.rolechip:hover { border-color: var(--black); color: var(--black); }
+.rolechip[aria-selected="true"] { background: var(--black); border-color: var(--black); color: var(--white); }
+
+/* --------------------------------------------------------------------------
+   4. SCREEN HEADER
+   -------------------------------------------------------------------------- */
+.head { padding: 20px 16px 12px; }
+.head__kicker {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 8px;
+}
+.head__sub { font-size: 16px; color: var(--muted); margin-top: 8px; }
+
+.rowbar { display: flex; align-items: center; gap: 12px; }
+.rowbar--between { justify-content: space-between; }
+
+/* --------------------------------------------------------------------------
+   5. MAP
+   -------------------------------------------------------------------------- */
+.map {
+  width: 100%; height: 100%;
+  background: var(--surface);
+  position: relative;
+  z-index: 0;
+}
+/* OpenStreetMap tiles, desaturated so the black markers carry the screen. */
+/* Light, low-contrast streets so the orange route and dot carry the map. */
+.map .leaflet-tile-pane { filter: grayscale(0.85) contrast(0.78) brightness(1.1) saturate(0.7); }
+.map .leaflet-container { background: var(--surface); font-family: var(--font); }
+
+.mapwrap { position: relative; height: 320px; overflow: hidden; background: var(--surface); }
+.mapwrap--tall { height: 55vh; min-height: 280px; }
+
+/* Markers are plain divs so they stay crisp and need no image assets. */
+.pin-dot, .pin-me, .pin-school, .pin-search { display: block; }
+.pin-dot { width: 12px; height: 12px; border-radius: 6px; background: var(--black); }
+/* "You are here": a bright orange dot inside a soft orange glow. */
+.pin-me {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--orange); border: 3px solid var(--white);
+  box-shadow: 0 0 0 8px rgba(255, 106, 19, 0.18);
+}
+.pin-school {
+  width: 20px; height: 20px; border-radius: 7px;
+  background: var(--black); border: 2px solid var(--white);
+  box-shadow: 0 2px 6px rgba(26, 26, 26, 0.3);
+}
+/* "Finding your ride" — a ring pulsing out from the student's neighbourhood. */
+.pin-search { width: 18px; height: 18px; position: relative; }
+.pin-search::after {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  border: 2px solid var(--orange); animation: ring 1.6s ease-out infinite;
+}
+@keyframes ring {
+  0%   { transform: scale(0.4); opacity: 1; }
+  100% { transform: scale(3.6); opacity: 0; }
+}
+
+.map__fallback {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 24px; color: var(--muted); font-size: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   6. BOTTOM SHEET
+   -------------------------------------------------------------------------- */
+.sheet {
+  position: relative; z-index: 2;
+  background: var(--white);
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  box-shadow: var(--sheet-shadow);
+  margin-top: -20px;
+  padding: 10px 16px 20px;
+}
+.sheet__handle {
+  width: 42px; height: 5px; border-radius: var(--r-pill);
+  background: var(--line); margin: 0 auto 16px;
+}
+
+/* --------------------------------------------------------------------------
+   7. BUTTONS
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: var(--btn-h); padding: 0 20px; width: 100%;
+  border: 1px solid var(--orange); border-radius: var(--r-pill);
+  background: var(--orange); color: var(--white);
+  font: inherit; font-size: 16px; font-weight: 700; cursor: pointer;
+  text-decoration: none;
+}
+.btn:hover { background: var(--orange-deep); border-color: var(--orange-deep); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn--ghost { background: var(--white); color: var(--orange-deep); border-color: var(--orange); }
+.btn--ghost:hover { background: var(--orange-tint); }
+.btn--quiet { background: var(--surface); border-color: var(--surface); color: var(--black); }
+.btn--quiet:hover { background: var(--surface-2); border-color: var(--surface-2); }
+.btn--sm { min-height: var(--tap); font-size: 14px; width: auto; padding: 0 16px; border-radius: var(--r-pill); }
+.btn--danger { background: var(--white); color: #C62828; border-color: #F3C9C6; }
+.btn .i { width: 18px; height: 18px; }
+
+.iconbtn {
+  width: var(--tap); height: var(--tap); flex: none; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; border: 1px solid var(--line);
+  background: var(--white); color: var(--black); cursor: pointer;
+}
+.iconbtn:hover { background: var(--orange-tint); }
+.iconbtn .i { width: 20px; height: 20px; }
+
+/* The big grey "where to" pill on the home screen. */
+.searchpill {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  min-height: var(--btn-h); padding: 0 18px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-pill);
+  font: inherit; font-size: 16px; font-weight: 600; color: var(--black);
+  cursor: pointer; text-align: left;
+}
+.searchpill:hover { background: var(--surface-2); }
+.searchpill .i { color: var(--orange); }
+.searchpill__now { margin-left: auto; flex: none; background: var(--white); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 7px 14px; font-size: 13px; font-weight: 700; }
+.searchpill .i { width: 20px; height: 20px; flex: none; }
+
+/* --------------------------------------------------------------------------
+   8. CHIPS + STATUS
+   -------------------------------------------------------------------------- */
+.chiprow { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0; scrollbar-width: none; }
+.chiprow::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; min-height: 36px; padding: 0 14px;
+  display: inline-flex; align-items: center; gap: 7px;
+  border-radius: var(--r-pill); border: 1px solid var(--line);
+  background: var(--white); color: var(--black);
+  font-size: 13px; font-weight: 600; white-space: nowrap;
+  cursor: default;
+}
+button.chip { cursor: pointer; }
+button.chip:hover { border-color: var(--orange); }
+.chip[aria-pressed="true"] { background: var(--orange); border-color: var(--orange); color: var(--white); }
+.chip--quiet { background: var(--surface); border-color: var(--surface); color: var(--muted); }
+.chip--done { background: var(--surface); border-color: var(--surface); color: var(--black); }
+.chip--done .i { width: 15px; height: 15px; }
+
+/* Status: dot + word, always. The three dots differ in shape, not just fill. */
+.status { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.status__dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.status--confirmed .status__dot { background: var(--orange); }
+.status--waiting .status__dot { background: var(--white); border: 2px solid var(--muted); }
+.status--none .status__dot { background: var(--white); border: 2px solid var(--black); border-radius: 3px; }
+.status--none { color: var(--black); }
+.status--waiting { color: var(--muted); }
+
+/* --------------------------------------------------------------------------
+   9. LIST ROWS
+   -------------------------------------------------------------------------- */
+.list { display: grid; gap: 2px; }
+.row {
+  display: flex; align-items: center; gap: 14px; width: 100%;
+  min-height: 68px; padding: 12px 0;
+  background: none; border: 0; border-bottom: 1px solid var(--line);
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.row:last-child { border-bottom: 0; }
+.row--static { cursor: default; }
+.row:hover:not(.row--static) { background: var(--surface); }
+.row--selected { background: var(--orange-tint); border: 2px solid var(--orange); border-radius: var(--r-tile); padding: 12px; }
+
+/* Square grey icon tile at the start of a row. */
+.tile {
+  width: 46px; height: 46px; flex: none;
+  border-radius: 16px; background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--orange-deep);
+}
+.tile .i { width: 22px; height: 22px; }
+
+.row__body { flex: 1; min-width: 0; }
+.row__title { font-size: 16px; font-weight: 700; line-height: 1.25; }
+.row__meta { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.row__end { flex: none; display: flex; align-items: center; gap: 8px; }
+
+/* --------------------------------------------------------------------------
+   10. CARDS
+   -------------------------------------------------------------------------- */
+.card { background: var(--white); border: 1px solid var(--line); border-radius: var(--r-card); padding: 20px; box-shadow: var(--shadow-soft); }
+.card--fill { background: var(--surface); border-color: var(--surface); box-shadow: none; }
+/* The hero card: big orange panel carrying the headline number. */
+.card--hero {
+  background: var(--orange); border-color: var(--orange); color: var(--white);
+  border-radius: var(--r-card); padding: 22px; box-shadow: var(--shadow-soft);
+}
+.card--hero .label { color: rgba(255, 255, 255, 0.92); }
+.card--hero .hero__num { font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+.card--hero .hero__sub { font-size: 15px; font-weight: 600; color: rgba(255, 255, 255, 0.95); margin-top: 4px; }
+.hero__actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.hero__btn {
+  flex: 1 1 auto; min-height: 48px; padding: 0 18px;
+  border-radius: var(--r-pill); border: 0; background: var(--white);
+  color: var(--orange-deep); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.hero__btn:hover { background: var(--orange-tint); }
+.hero__btn .i { width: 17px; height: 17px; }
+
+.label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted);
+}
+.muted { color: var(--muted); }
+.big { font-size: 40px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; }
+
+/* --------------------------------------------------------------------------
+   11. AVATARS
+   -------------------------------------------------------------------------- */
+.avatar {
+  width: 44px; height: 44px; flex: none; border-radius: 50%;
+  background: var(--orange-tint); color: var(--orange-deep);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; letter-spacing: 0.02em;
+}
+.avatar--sm { width: 34px; height: 34px; font-size: 12px; }
+.avatar--grey { background: var(--surface); color: var(--black); }
+.avatar--dark { background: var(--black); color: var(--white); }
+
+/* "Riding with" — avatar above, activity label under it. */
+.people { display: flex; flex-wrap: wrap; gap: 14px; }
+.person { width: 72px; text-align: center; }
+.person__name { font-size: 12px; font-weight: 700; margin-top: 6px; line-height: 1.2; }
+.person__act { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.2; }
+
+/* --------------------------------------------------------------------------
+   12. HANDOFF CODE
+   -------------------------------------------------------------------------- */
+.handoff { background: var(--orange-tint); border-radius: var(--r-card); padding: 20px; text-align: center; }
+.handoff__code {
+  font-size: 56px; font-weight: 700; letter-spacing: 0.08em; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.handoff__help { font-size: 14px; color: var(--muted); margin-top: 8px; }
+
+/* --------------------------------------------------------------------------
+   13. THE READINESS DIAL
+   -------------------------------------------------------------------------- */
+.dial { position: relative; width: 100%; max-width: 300px; margin: 0 auto; aspect-ratio: 1 / 1; }
+.dial__svg { display: block; width: 100%; height: 100%; }
+.dial__tick { fill: var(--tick-empty); }
+.dial__tick.is-filled { fill: var(--orange); }
+.dial__tick.is-dim { opacity: 0.35; }
+
+.dial__center {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center;
+  /* The padding-top is what lands the numeral on the dial's axis instead of
+     centring the number-and-label stack as a block. */
+  padding: 23px 54px 0;
+}
+.dial__num { font-size: 56px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+.dial__sub { font-size: 14px; font-weight: 600; color: var(--muted); margin-top: 6px; }
+
+@keyframes tick-fill { from { fill: var(--tick-empty); } to { fill: var(--orange); } }
+.dial__tick.is-filling { animation: tick-fill 240ms ease-out both; }
+
+/* --------------------------------------------------------------------------
+   14. FORMS
+   -------------------------------------------------------------------------- */
+.field { display: grid; gap: 6px; }
+.field > label { font-size: 14px; font-weight: 700; }
+.field__hint { display: block; margin-top: 3px; font-size: 13px; color: var(--muted); font-weight: 400; }
+input[type="text"], input[type="email"], input[type="password"], select {
+  width: 100%; min-height: var(--btn-h); padding: 0 14px;
+  border: 1px solid var(--line); border-radius: var(--r-tile);
+  background: var(--white); color: var(--black);
+  font: inherit; font-size: 16px;
+}
+select { padding-right: 36px; }
+
+/* Choice list (Ride with: any driver / parents only) */
+.choices { display: grid; gap: 8px; }
+.choice {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  min-height: var(--btn-h); padding: 0 16px; text-align: left;
+  border: 1px solid var(--line); border-radius: var(--r-tile);
+  background: var(--white); font: inherit; cursor: pointer;
+}
+.choice[aria-checked="true"] { border-color: var(--orange); border-width: 2px; background: var(--orange-tint); }
+.choice__mark {
+  width: 20px; height: 20px; flex: none; border-radius: 50%;
+  border: 2px solid var(--muted); display: grid; place-items: center;
+}
+.choice[aria-checked="true"] .choice__mark { border-color: var(--orange); }
+.choice[aria-checked="true"] .choice__mark::after {
+  content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--orange);
+}
+.choice__text { font-size: 16px; font-weight: 600; }
+
+/* Toggle: black when on. */
+.toggle { display: inline-flex; align-items: center; height: var(--tap); width: 52px; flex: none; padding: 0; border: 0; background: none; cursor: pointer; }
+.toggle__track { width: 52px; height: 30px; border-radius: var(--r-pill); background: #CFCFCF; padding: 3px; transition: background 160ms ease; }
+.toggle[aria-checked="true"] .toggle__track { background: var(--orange); }
+.toggle__knob { display: block; width: 24px; height: 24px; border-radius: 50%; background: var(--white); transition: transform 160ms ease; }
+.toggle[aria-checked="true"] .toggle__knob { transform: translateX(22px); }
+
+/* Stepper: − 3 + */
+.stepper { display: inline-flex; align-items: center; gap: 4px; }
+.stepper__btn {
+  width: var(--tap); height: var(--tap); border-radius: 50%;
+  border: 1px solid var(--line); background: var(--white); color: var(--black);
+  font: inherit; font-size: 20px; font-weight: 700; cursor: pointer;
+  display: grid; place-items: center;
+}
+.stepper__btn:hover { border-color: var(--orange); color: var(--orange-deep); }
+.stepper__btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.stepper__value { min-width: 40px; text-align: center; font-size: 20px; font-weight: 700; }
+
+/* --------------------------------------------------------------------------
+   15. NOTICES / EMPTY STATES
+   -------------------------------------------------------------------------- */
+.notice {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--surface); border-radius: var(--r-tile); padding: 14px 16px;
+}
+.notice .i { color: var(--orange-deep); }
+.notice .i { width: 20px; height: 20px; flex: none; margin-top: 1px; }
+.notice__title { font-weight: 700; font-size: 16px; }
+.notice p { font-size: 14px; color: var(--muted); margin-top: 3px; }
+
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+.empty__icon {
+  width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%;
+  background: var(--orange-tint); display: grid; place-items: center; color: var(--orange-deep);
+}
+.empty__icon .i { width: 26px; height: 26px; }
+.empty h3 { color: var(--black); margin-bottom: 6px; }
+
+/* --------------------------------------------------------------------------
+   16. BOTTOM TAB BAR
+   -------------------------------------------------------------------------- */
+.tabbar {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: var(--col); z-index: 40;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: var(--white); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.tab {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-height: 64px; padding: 8px 4px;
+  background: none; border: 0; font: inherit; cursor: pointer;
+  color: var(--muted); text-decoration: none;
+}
+.tab .i { width: 22px; height: 22px; }
+.tab span { font-size: 12px; font-weight: 700; }
+.tab[aria-current="page"] { color: var(--orange); }
+
+/* --------------------------------------------------------------------------
+   17. WORDMARK
+   -------------------------------------------------------------------------- */
+.wordmark { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; display: inline-flex; align-items: baseline; }
+.wordmark__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--orange); margin-left: 3px; align-self: flex-end; margin-bottom: 6px; }
+
+/* --------------------------------------------------------------------------
+   18. MISC
+   -------------------------------------------------------------------------- */
+.divider { height: 1px; background: var(--line); margin: 16px 0; }
+.kv { display: grid; gap: 10px; }
+.kv > div { display: grid; gap: 2px; }
+.kv dt { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.kv dd { margin: 0; font-size: 16px; }
+
+.nowrap { white-space: nowrap; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dial__tick.is-filling, .pin-search::after { animation: none; }
+  .toggle__track, .toggle__knob { transition: none; }
+}
+
+/* ==========================================================================
+   19. TOUR MODE  (index.html?tour=1)
+   One long scroll of the real app, for recording. None of this applies
+   without the .is-tour class on <body>.
+   ========================================================================== */
+body.is-tour .demobar,
+body.is-tour .tabbar { display: none; }
+body.is-tour .app { max-width: none; background: var(--peach); box-shadow: none; }
+body.is-tour #main { padding-bottom: 0; }
+
+.tour {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 104px; padding: 72px 16px 120px;
+}
+
+.tour__intro { max-width: 540px; text-align: center; }
+.tour__intro .wordmark { font-size: 40px; }
+.tour__intro p { font-size: 16px; color: var(--muted); margin-top: 14px; }
+
+.tour__section { width: 100%; max-width: 430px; display: flex; flex-direction: column; gap: 18px; }
+.tour__section--wide { max-width: 920px; }
+
+.tour__meta { display: flex; gap: 14px; align-items: flex-start; }
+.tour__num {
+  width: 32px; height: 32px; flex: none; border-radius: 50%;
+  background: var(--orange); color: var(--white);
+  display: grid; place-items: center; font-size: 14px; font-weight: 700;
+}
+.tour__meta h2 { font-size: 20px; margin: 3px 0 6px; }
+.tour__meta p { font-size: 14px; line-height: 1.5; color: var(--muted); }
+
+.tour__stage { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+.tour__frame { width: 430px; max-width: 100%; }
+.tour__panelabel { font-size: 14px; font-weight: 700; margin-bottom: 10px; text-align: center; }
+
+.tour__phone {
+  position: relative; background: var(--white);
+  border-radius: 20px; overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.10);
+}
+.tour__screen { min-height: 120px; }
+
+/* The tap pulse: where a finger would land, just before the action runs. */
+.tour__pulse {
+  position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px;
+  border-radius: 50%; background: rgba(255, 106, 19, 0.30);
+  pointer-events: none; z-index: 5;
+  animation: tour-pulse 620ms ease-out;
+}
+@keyframes tour-pulse {
+  0%   { transform: scale(0.35); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* A brief ring to point at something already on screen. */
+.tour__flash { box-shadow: 0 0 0 3px var(--orange); border-radius: 10px; transition: box-shadow 160ms ease; }
+
+.tour__end { text-align: center; display: grid; gap: 16px; justify-items: center; max-width: 430px; width: 100%; }
+.tour__end p { font-size: 16px; color: var(--muted); }
+
+/* CSV preview in the export section */
+.csv { width: 100%; border-collapse: collapse; font-size: 12px; }
+.csv th, .csv td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.csv th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.csvwrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-card); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tour__pulse { animation-duration: 1ms; }
+  .tour__flash { transition: none; }
+}
+
+/* --------------------------------------------------------------------------
+   20. KIT PIECES — the hero card, saved rows, quick tiles, stat tiles
+   -------------------------------------------------------------------------- */
+
+/* Saved destinations: a small orange dot, a name, a sub-label. */
+.saved { display: grid; gap: 2px; }
+.savedrow {
+  display: flex; align-items: center; gap: 14px; width: 100%;
+  min-height: 56px; padding: 8px 0; background: none; border: 0;
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.savedrow__dot { width: 10px; height: 10px; border-radius: 50%; background: var(--orange); flex: none; }
+.savedrow__name { font-size: 16px; font-weight: 700; }
+.savedrow__sub { font-size: 14px; color: var(--muted); margin-top: 1px; }
+
+/* Four quick actions in rounded squares. */
+.quickgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.quick {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 14px 4px; border-radius: var(--r-tile);
+  background: var(--surface); border: 1px solid transparent;
+  font: inherit; font-size: 12px; font-weight: 700; color: var(--black); cursor: pointer;
+}
+.quick:hover { border-color: var(--orange); }
+.quick[aria-pressed="true"] { background: var(--orange-tint); border-color: var(--orange); color: var(--orange-deep); }
+.quick__icon {
+  width: 42px; height: 42px; border-radius: 14px; background: var(--white);
+  display: grid; place-items: center; color: var(--orange-deep);
+}
+.quick__icon .i { width: 20px; height: 20px; }
+
+/* Three stat tiles on the account screen. */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat { background: var(--surface); border-radius: var(--r-tile); padding: 16px 12px; text-align: center; }
+.stat__num { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.stat__label { font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 4px; }
+
+/* A settings list with rounded icon tiles. */
+.settings { display: grid; gap: 2px; }
+.setting {
+  display: flex; align-items: center; gap: 14px; width: 100%;
+  min-height: 60px; padding: 10px 0; background: none; border: 0;
+  border-bottom: 1px solid var(--line);
+  font: inherit; font-size: 16px; font-weight: 600; color: var(--black);
+  text-align: left; cursor: pointer;
+}
+.setting:last-child { border-bottom: 0; }
+.setting:hover { color: var(--orange-deep); }
+.setting--danger { color: #C62828; }
+.setting--danger .tile { color: #C62828; background: #FDECEA; }
+.setting__chev { margin-left: auto; color: var(--muted); }
+
+/* A floating white label over the map. */
+.maplabel {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 2; background: var(--white); border-radius: var(--r-pill);
+  padding: 9px 16px; font-size: 14px; font-weight: 700;
+  box-shadow: var(--shadow-soft); white-space: nowrap;
+}
+
+/* Full-screen orange welcome. */
+.welcome {
+  background: var(--orange); color: var(--white);
+  min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 32px 20px 40px; gap: 18px;
+}
+.welcome .wordmark { color: var(--white); font-size: 40px; }
+.welcome .wordmark__dot { background: var(--white); }
+.welcome p { font-size: 17px; font-weight: 600; color: rgba(255, 255, 255, 0.95); max-width: 30ch; }
+.welcome__btn {
+  min-height: var(--btn-h); border-radius: var(--r-pill); border: 0;
+  background: var(--white); color: var(--orange-deep);
+  font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; width: 100%;
+}
+.welcome__btn--ghost { background: transparent; color: var(--white); border: 2px solid rgba(255,255,255,0.7); }
+.welcome__note { font-size: 14px; font-weight: 500; color: rgba(255, 255, 255, 0.9); }
+
+/* ==========================================================================
+   21. PRESENTATION MODE  (index.html?demo=1)
+   Nothing on screen but the app. Space advances.
+   ========================================================================== */
+body.is-presentation .demobar,
+body.is-presentation .tabbar { display: none; }
+body.is-presentation .app { max-width: none; background: var(--peach); box-shadow: none; }
+body.is-presentation #main { padding-bottom: 0; }
+
+.pres { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; }
+.pres__stage { display: flex; gap: 28px; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+.pres__frame { width: 430px; max-width: 100%; }
+.pres__label { font-size: 15px; font-weight: 700; text-align: center; margin-bottom: 12px; }
+
+.pres__phone {
+  position: relative; background: var(--white);
+  border-radius: 28px; overflow: hidden;
+  box-shadow: 0 16px 50px rgba(26, 26, 26, 0.12);
+}
+.pres__screen { min-height: 140px; }
+
+.pres__pulse {
+  position: absolute; width: 64px; height: 64px; margin: -32px 0 0 -32px;
+  border-radius: 50%; background: rgba(255, 106, 19, 0.32);
+  pointer-events: none; z-index: 6;
+  animation: tour-pulse 620ms ease-out;
+}
+
+/* A 2px ring that fades out, to point the eye somewhere. */
+.pres__ring {
+  outline: 2px solid var(--black); outline-offset: 3px; border-radius: 10px;
+  animation: pres-fade 1500ms ease-out forwards;
+}
+@keyframes pres-fade {
+  0%, 60% { outline-color: var(--black); }
+  100% { outline-color: rgba(26, 26, 26, 0); }
+}
+
+/* Empty ticks pulsing on beat 1. */
+.dial__tick.is-pulsing { animation: tick-pulse 620ms ease-in-out; }
+@keyframes tick-pulse {
+  0%, 100% { fill: var(--tick-empty); }
+  50% { fill: #B9A99C; }
+}
+
+.pres__filled {
+  margin-top: 8px; font-size: 14px; font-weight: 700;
+  color: var(--orange-deep); letter-spacing: 0.01em;
+}
+
+.pres__beat {
+  position: fixed; bottom: 14px; right: 16px; z-index: 50;
+  background: rgba(26, 26, 26, 0.82); color: #fff;
+  font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px;
+}
+.pres__beat[hidden] { display: none; }
+
+/* The export preview slides up over the deck. */
+.pres__export {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(26, 26, 26, 0.25);
+}
+.pres__export-inner {
+  width: 100%; max-width: 560px; background: var(--white);
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  padding: 14px 20px 28px; box-shadow: var(--sheet-shadow);
+  transform: translateY(100%); transition: transform 260ms ease-out;
+}
+.pres__export.is-open .pres__export-inner { transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pres__pulse, .pres__ring, .dial__tick.is-pulsing { animation: none; }
+  .pres__export-inner { transition: none; }
+}

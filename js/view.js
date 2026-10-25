@@ -20,6 +20,15 @@ export const view = {
 
   /** Organizer's alert preference. Sends nothing until accounts exist (Stage 2). */
   autoAlert: true,
+
+  /** Home screen: which kind of event the chips are filtering to. */
+  homeFilter: null,
+
+  /** Request screen: which drivers the student will accept. */
+  ridePreference: 'Any approved driver',
+
+  /** Organizer: which unmatched student's "assign a driver" list is open. */
+  assignOpenFor: null,
 };
 
 /**
