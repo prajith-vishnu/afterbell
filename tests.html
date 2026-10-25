@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AfterBell — algorithm tests</title>
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <header class="topbar"><div class="topbar__inner">
+    <div class="brand"><span class="brand__name">AfterBell</span>
+    <span class="brand__tag">algorithm tests</span></div>
+  </div></header>
+
+  <main class="shell">
+    <div class="pagehead">
+      <div class="pagehead__eyebrow">js/matching.test.js</div>
+      <h1 id="headline">Running…</h1>
+      <p class="pagehead__sub">These test the matching algorithm on its own — no
+      browser features, no Firebase, no network. The same file runs in a terminal
+      with <span class="mono">node js/matching.test.js</span>.</p>
+    </div>
+    <div id="out"></div>
+    <p style="margin-top:18px"><a href="./index.html">Back to the app</a></p>
+  </main>
+
+  <script type="module">
+    import { summary } from './js/matching.test.js';
+
+    document.getElementById('headline').textContent =
+      summary.failed === 0
+        ? `${summary.passed} of ${summary.total} tests pass`
+        : `${summary.failed} of ${summary.total} tests FAILED`;
+
+    document.getElementById('out').innerHTML = `<ul class="gaps">${summary.results
+      .map((r) => `<li>
+        <div class="gaps__who">
+          <span class="chip chip--${r.ok ? 'confirmed' : 'none'}">
+            <span class="swatch"></span>${r.ok ? 'pass' : 'fail'}
+          </span>
+          ${r.name.replace(/</g, '&lt;')}
+        </div>
+        ${r.ok ? '' : `<div class="gaps__why mono">${String(r.message).replace(/</g, '&lt;')}</div>`}
+      </li>`)
+      .join('')}</ul>`;
+  </script>
+</body>
+</html>

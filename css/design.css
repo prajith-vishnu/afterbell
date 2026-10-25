@@ -1,0 +1,573 @@
+/* ===========================================================================
+   AfterBell — design.css
+   The redesign: warm, minimal, premium smart-home dashboard.
+   ===========================================================================
+   Loaded AFTER styles.css. It redefines the shared tokens, so screens that
+   have not been rebuilt yet still pick up the new palette and typeface and
+   stay readable while the redesign rolls out screen by screen.
+
+   DEPTH comes from the contrast between dark cards and light cards — not from
+   gradients, glass, or glow. At most one very soft shadow.
+
+   ONE ACCENT: Braswell Red #DA291C, for toggles, primary buttons, filled
+   ticks and squares, and small badges. Nothing else in the app is red.
+
+   CONTRAST NOTE (deliberate deviation, documented on purpose):
+   The brief asked for #7D756D as secondary text AND for 4.5:1 everywhere.
+   Those two conflict: #7D756D measures 3.99:1 on #F3F0EC and worse on the
+   slightly darker tiles. So secondary text uses #6A635B, which clears the bar
+   on both surfaces it actually sits on:
+     #6A635B on #F3F0EC (light card) .... 5.21:1
+     #6A635B on #E9E4DE (inner tile) .... 4.68:1
+   The original #7D756D survives as --ink-3 for decorative use only, never for
+   text that carries meaning.
+=========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. TOKENS — these override the ones in styles.css
+   -------------------------------------------------------------------------- */
+:root {
+  /* Surfaces */
+  --greige: #D9D3CC;      /* the app background */
+  --paper: #F3F0EC;       /* light cards */
+  --paper-2: #E9E4DE;     /* tiles inside light cards */
+  --dark: #2A2623;        /* dark cards */
+  --dark-2: #36312D;      /* tiles inside dark cards */
+
+  /* Text */
+  --ink: #1E1B18;         /* 11.5:1 on greige, 13.0:1 on paper */
+  --ink-2: #6A635B;       /* 5.21:1 on --paper, 4.68:1 on --paper-2 tiles */
+  --ink-3: #7D756D;       /* decorative only, never load-bearing text */
+  --on-dark: #F3F0EC;     /* 13.2:1 on --dark */
+  --on-dark-2: #A69D94;   /* 5.62:1 on --dark, 4.82:1 on --dark-2 */
+
+  /* Accent + states */
+  --red: #DA291C;
+  --red-press: #B82217;
+  --off: #CFC8C0;         /* a toggle that is off */
+  --tick-empty: #4A443F;  /* an unfilled tick on the dial */
+  --amber: #D99A1E;       /* "waiting" hatching, paired with a text label */
+  --amber-ink: #7A5406;
+
+  /* Lines */
+  --rule: #CFC8C0;
+  --rule-2: #BDB5AC;
+  --hairline-dark: rgba(243, 240, 236, 0.12);
+
+  /* Depth */
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  /* Shape */
+  --r-card: 24px;
+  --r-tile: 18px;
+  --r-pill: 999px;
+  --tap: 44px;
+
+  /* Layout: the app lives in a phone-width column, centered on any screen. */
+  --col: 430px;
+
+  /* Type — Manrope for everything, with tabular numerals. */
+  --body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --head: var(--body);
+  --mono: var(--body);
+
+  /* Legacy aliases so not-yet-redesigned screens inherit the new palette */
+  --bg: var(--greige);
+  --black: var(--ink);
+  --r: 18px;
+  --r-sm: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   2. BASE
+   -------------------------------------------------------------------------- */
+body {
+  background: var(--greige);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { font-family: var(--body); font-weight: 500; letter-spacing: -0.015em; }
+
+/* A 2px red ring with offset, on every focusable thing. */
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+/* On dark cards the red ring needs a light halo to stay visible. */
+.ab-dark :focus-visible { outline-color: var(--red); box-shadow: 0 0 0 4px rgba(243, 240, 236, 0.35); }
+
+/* --------------------------------------------------------------------------
+   3. THE PHONE COLUMN
+   Mobile-first by construction: on a laptop the app simply stays phone width
+   and centers, with the greige background filling the rest of the screen.
+   -------------------------------------------------------------------------- */
+.shell,
+.topbar__inner,
+.subnav__inner,
+.footer p { max-width: var(--col); margin-left: auto; margin-right: auto; }
+
+.shell { padding: 4px 16px 56px; }
+
+/* --------------------------------------------------------------------------
+   4. TOP BAR — no more black bar. Wordmark, demo badge, role chips.
+   -------------------------------------------------------------------------- */
+.topbar { background: transparent; border-bottom: 0; }
+.topbar__inner { padding: 16px 16px 6px; display: block; }
+
+.topbar__row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 10px;
+}
+.brand { display: flex; align-items: baseline; gap: 8px; margin: 0; min-width: 0; }
+.brand__name { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+.brand__tag { font-family: var(--body); font-size: 12px; font-weight: 500; color: var(--ink-2); }
+
+.topbar__right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.demo-badge {
+  font-family: var(--body); font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  background: var(--red); color: #fff; border: 0;
+  padding: 6px 10px; border-radius: var(--r-pill);
+}
+
+.roleswitch { gap: 6px; }
+.roleswitch__label { display: none; }
+/* One row of chips at any width. It scrolls sideways rather than wrapping,
+   so the header height never changes as you move between roles. */
+.roleswitch__group {
+  border: 0; gap: 6px; background: none;
+  flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.roleswitch__group::-webkit-scrollbar { display: none; }
+
+/* Role switcher as a row of pill chips. */
+.roleswitch__btn {
+  border: 1px solid var(--rule-2); border-left: 1px solid var(--rule-2);
+  background: transparent; color: var(--ink-2);
+  border-radius: var(--r-pill); padding: 0 13px; min-height: 38px;
+  font-family: var(--body); font-size: 13px; font-weight: 600;
+  white-space: nowrap; flex: none;
+}
+.roleswitch__btn:first-child { border-left: 1px solid var(--rule-2); }
+.roleswitch__btn:hover { background: var(--paper); color: var(--ink); }
+.roleswitch__btn[aria-selected="true"] {
+  background: var(--red); border-color: var(--red); color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   5. SUB NAV — quiet text pills under the chips.
+   -------------------------------------------------------------------------- */
+.subnav { background: transparent; border-bottom: 0; }
+.subnav__inner { padding: 8px 16px 0; gap: 4px; }
+.subnav__link {
+  border-bottom: 0; border-radius: var(--r-pill);
+  padding: 9px 12px; min-height: 40px; font-size: 13px; font-weight: 600;
+  color: var(--ink-2);
+}
+.subnav__link:hover { background: var(--paper); color: var(--ink); }
+.subnav__link[aria-current="page"] { background: var(--ink); color: var(--paper); }
+.subnav__link[aria-current="page"] .i { color: var(--paper); }
+
+/* --------------------------------------------------------------------------
+   6. CARDS
+   -------------------------------------------------------------------------- */
+.ab-card {
+  background: var(--paper);
+  border: 0; border-radius: var(--r-card);
+  padding: 18px; box-shadow: var(--shadow);
+}
+.ab-card + .ab-card, .ab-dark + .ab-card, .ab-card + .ab-dark { margin-top: 14px; }
+
+.ab-dark {
+  background: var(--dark); color: var(--on-dark);
+  border-radius: var(--r-card); padding: 18px; box-shadow: var(--shadow);
+}
+.ab-tile {
+  background: var(--paper-2); border-radius: var(--r-tile); padding: 14px;
+}
+.ab-dark .ab-tile { background: var(--dark-2); }
+
+.ab-label {
+  font-size: 13px; font-weight: 500; color: var(--ink-2);
+  margin: 0 0 8px;
+}
+.ab-dark .ab-label { color: var(--on-dark-2); }
+
+.ab-h2 { font-size: 22px; font-weight: 500; letter-spacing: -0.02em; margin: 0; }
+.ab-stack > * + * { margin-top: 12px; }
+
+/* --------------------------------------------------------------------------
+   7. BUTTONS — pills, and 44px icon circles.
+   -------------------------------------------------------------------------- */
+.ab-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: var(--tap); padding: 0 22px;
+  border-radius: var(--r-pill); border: 1px solid transparent;
+  font-family: var(--body); font-size: 15px; font-weight: 600;
+  cursor: pointer; text-decoration: none;
+  background: var(--paper); color: var(--ink);
+}
+.ab-btn--primary { background: var(--red); color: #fff; }
+.ab-btn--primary:hover { background: var(--red-press); }
+.ab-btn--lg { min-height: 56px; font-size: 16px; width: 100%; }
+.ab-btn--ghost { background: transparent; border-color: var(--rule-2); color: var(--ink); }
+.ab-btn--ghost:hover { background: var(--paper); }
+.ab-dark .ab-btn--ghost { border-color: var(--hairline-dark); color: var(--on-dark); }
+.ab-dark .ab-btn--ghost:hover { background: var(--dark-2); }
+.ab-btn .i { width: 18px; height: 18px; }
+
+.ab-icon-btn {
+  width: var(--tap); height: var(--tap); flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; border: 1px solid var(--rule-2);
+  background: transparent; color: var(--ink); cursor: pointer; padding: 0;
+}
+.ab-icon-btn:hover { background: var(--paper); }
+.ab-dark .ab-icon-btn { border-color: var(--hairline-dark); color: var(--on-dark); background: var(--dark-2); }
+.ab-dark .ab-icon-btn:hover { background: #413B36; }
+.ab-icon-btn .i { width: 20px; height: 20px; }
+
+/* --------------------------------------------------------------------------
+   8. TOGGLE — pill, red when on. The hit area is 44px tall; the pill is 30.
+   -------------------------------------------------------------------------- */
+.ab-toggle {
+  display: inline-flex; align-items: center;
+  height: var(--tap); width: 52px; flex: none;
+  padding: 0; border: 0; background: none; cursor: pointer;
+}
+.ab-toggle__track {
+  width: 52px; height: 30px; border-radius: var(--r-pill);
+  background: var(--off); padding: 3px; transition: background 180ms ease;
+}
+.ab-toggle[aria-checked="true"] .ab-toggle__track { background: var(--red); }
+.ab-toggle__knob {
+  display: block; width: 24px; height: 24px; border-radius: 50%;
+  background: #fff; transition: transform 180ms ease;
+}
+.ab-toggle[aria-checked="true"] .ab-toggle__knob { transform: translateX(22px); }
+
+.ab-togglerow {
+  display: flex; align-items: center; gap: 12px; justify-content: space-between;
+}
+.ab-togglerow__text { min-width: 0; }
+.ab-togglerow__text strong { display: block; font-size: 14px; font-weight: 600; }
+.ab-togglerow__text span { display: block; font-size: 12px; color: var(--on-dark-2); }
+
+/* --------------------------------------------------------------------------
+   9. AVATARS — initials only. There is no photo anywhere in this app.
+   -------------------------------------------------------------------------- */
+.ab-avatar {
+  width: 40px; height: 40px; flex: none; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #E0DAD3; color: var(--ink);
+  font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
+}
+.ab-dark .ab-avatar { background: #4A443F; color: var(--on-dark); }
+.ab-avatar--sm { width: 32px; height: 32px; font-size: 11px; }
+
+.ab-badge {
+  display: inline-block; background: var(--red); color: #fff;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+  padding: 3px 9px; border-radius: var(--r-pill);
+}
+
+/* --------------------------------------------------------------------------
+   10. THE DIAL — the signature element.
+   One radial tick per roster member, around a 270 degree arc.
+   Filled = has a ride. Empty = no ride. The number in the middle says both,
+   in words, so the dial is never the only way to read the status.
+   -------------------------------------------------------------------------- */
+.dial { position: relative; width: 100%; max-width: 296px; margin: 2px auto 0; aspect-ratio: 1 / 1; }
+.dial__svg { display: block; width: 100%; height: 100%; }
+
+.dial__tick { fill: var(--tick-empty); }
+.dial__tick.is-filled { fill: var(--red); }
+.dial__tick.is-dim { opacity: 0.2; }
+
+.dial__center {
+  position: absolute; inset: 0; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 0 56px;
+}
+.dial__num {
+  font-size: 60px; font-weight: 300; line-height: 1;
+  letter-spacing: -0.045em; color: var(--on-dark);
+  font-variant-numeric: tabular-nums;
+}
+.dial__sub { font-size: 13px; font-weight: 500; color: var(--on-dark-2); margin-top: 8px; }
+.dial__time { font-size: 13px; font-weight: 500; color: var(--on-dark-2); margin-top: 2px; }
+
+/* The one notable animation: ticks turning red one at a time after
+   Fill the Gaps, in the exact order the algorithm seated those students. */
+@keyframes tick-fill {
+  from { fill: var(--tick-empty); }
+  to   { fill: var(--red); }
+}
+.dial__tick.is-filling { animation: tick-fill 240ms ease-out both; }
+
+/* --------------------------------------------------------------------------
+   11. GROUP FILTER CIRCLES
+   -------------------------------------------------------------------------- */
+.gfilters {
+  display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 4px;
+  scrollbar-width: none;
+}
+.gfilters::-webkit-scrollbar { display: none; }
+
+.gfilter {
+  width: var(--tap); height: var(--tap); flex: none; padding: 0;
+  border-radius: 50%; cursor: pointer;
+  background: var(--dark-2); color: var(--on-dark-2);
+  border: 1px solid var(--hairline-dark);
+  font-family: var(--body); font-size: 12px; font-weight: 700; letter-spacing: 0.01em;
+}
+.gfilter:hover { color: var(--on-dark); }
+.gfilter[aria-pressed="true"] {
+  background: var(--paper); color: var(--ink); border-color: transparent;
+}
+.gfilter__caption { font-size: 13px; font-weight: 500; color: var(--on-dark-2); margin: 10px 0 0; }
+
+/* --------------------------------------------------------------------------
+   12. UNMATCHED TILES
+   -------------------------------------------------------------------------- */
+.ab-person { display: flex; gap: 12px; align-items: flex-start; }
+.ab-person__body { min-width: 0; flex: 1; }
+.ab-person__name { font-size: 15px; font-weight: 600; margin: 0; }
+.ab-person__meta { font-size: 13px; font-weight: 500; color: var(--ink-2); margin: 1px 0 0; }
+.ab-person__why { font-size: 13.5px; color: var(--ink); margin: 8px 0 0; }
+.ab-person__rule {
+  display: inline-block; margin-top: 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-2); background: var(--paper); border-radius: var(--r-pill); padding: 4px 10px;
+}
+.ab-tilelist > * + * { margin-top: 10px; }
+
+/* --------------------------------------------------------------------------
+   13. STATUS CHIPS — restyled as soft pills. Still shape + label, never
+   color on its own.
+   -------------------------------------------------------------------------- */
+.chip {
+  border-radius: var(--r-pill); padding: 5px 11px; font-size: 12.5px; font-weight: 600;
+  background: var(--paper-2); border: 1px solid transparent; color: var(--ink);
+}
+.chip--confirmed { background: #F6DEDB; border-color: transparent; color: #7A1810; }
+.chip--confirmed .swatch { background: var(--red); border-radius: 3px; }
+.chip--waiting { background: #F6EAD2; color: var(--amber-ink); }
+.chip--waiting .swatch {
+  background: repeating-linear-gradient(45deg, var(--amber) 0 2px, #FBF2DE 2px 4px);
+  border: 1px solid var(--amber); border-radius: 3px;
+}
+.chip--none { background: var(--paper-2); color: var(--ink); }
+.chip--none .swatch { background: transparent; border: 1.5px solid var(--ink); border-radius: 3px; }
+.chip--activity {
+  background: var(--paper-2); color: var(--ink-2); text-transform: none;
+  letter-spacing: 0; font-size: 12px; font-weight: 600; padding: 4px 10px;
+}
+.ab-dark .chip { background: var(--dark-2); color: var(--on-dark); }
+.ab-dark .chip--activity { color: var(--on-dark-2); }
+
+/* --------------------------------------------------------------------------
+   14. THE SQUARE ROSTER GRID — kept as the secondary "View all spots" view.
+   -------------------------------------------------------------------------- */
+.spots {
+  border: 0; border-radius: var(--r-tile); background: var(--paper-2);
+  padding: 14px; gap: 7px;
+}
+.spot {
+  width: 30px; height: 30px; border-radius: 9px;
+  border: 1.5px solid var(--ink); background: transparent;
+}
+.spot--waiting {
+  border-color: var(--amber);
+  background: repeating-linear-gradient(45deg, var(--amber) 0 3px, #FBF2DE 3px 6px);
+}
+.spot--confirmed { border-color: var(--red); background: var(--red); }
+.spot:hover { transform: none; opacity: 0.85; }
+
+/* --------------------------------------------------------------------------
+   15. SELECTS inside the redesigned cards
+   -------------------------------------------------------------------------- */
+.ab-card select, .ab-card input[type="number"], .ab-card input[type="text"] {
+  border-radius: var(--r-tile); border: 1px solid var(--rule-2);
+  background: var(--paper-2); min-height: var(--tap);
+  font-family: var(--body); font-size: 14.5px; font-weight: 500; color: var(--ink);
+}
+.ab-field + .ab-field { margin-top: 12px; }
+.ab-field label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; }
+
+/* --------------------------------------------------------------------------
+   16. FOOTER
+   -------------------------------------------------------------------------- */
+.footer { background: transparent; border-top: 1px solid var(--rule); color: var(--ink-2); }
+.footer__privacy { color: var(--ink-2); }
+
+/* --------------------------------------------------------------------------
+   17. REDUCED MOTION — the dial and the squares simply arrive filled.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .dial__tick.is-filling { animation: none; }
+  .ab-toggle__track, .ab-toggle__knob { transition: none; }
+}
+
+/* --------------------------------------------------------------------------
+   18. DARK CARD HEADER
+   -------------------------------------------------------------------------- */
+.ab-dark__top { display: flex; align-items: flex-start; gap: 12px; }
+.ab-dark__top > div { min-width: 0; padding-top: 2px; }
+.ab-dark__eyebrow {
+  font-size: 12px; font-weight: 600; color: var(--on-dark-2);
+  margin: 0 0 3px; letter-spacing: 0.01em;
+}
+.ab-dark .ab-h2 { color: var(--on-dark); font-size: 22px; line-height: 1.2; }
+.ab-dark a { color: var(--on-dark); }
+
+/* A light card's heading link colour, now that nothing is navy. */
+.ab-card a { color: var(--ink); text-underline-offset: 3px; }
+
+/* The legend row inside the redesigned cards */
+.ab-card .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Group breakdown table inside the secondary spots view */
+.ab-card .groups th {
+  background: transparent; font-family: var(--body); font-size: 12px;
+  font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink-2);
+  border-bottom: 1px solid var(--rule);
+}
+.ab-card .groups td { border-bottom: 1px solid var(--rule); font-size: 14px; }
+.ab-card .groups td.num { font-variant-numeric: tabular-nums; }
+
+/* An unmatched tile stacks: name, then meta, then the reason, then its tags.
+   Nothing competes with the text for horizontal room, which is what kept
+   "Mellophones" breaking in half at 375px. */
+.ab-person__tags { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.ab-person__tags .chip { flex: none; }
+.ab-person__rule { margin-top: 0; }
+
+.ab-gaps__more { width: 100%; margin-top: 10px; min-height: 40px; font-size: 13px; }
+
+/* --------------------------------------------------------------------------
+   19. FLASH / NOTICE — restyled to sit with the new cards.
+   Still no red: in this app red means "filled", so a message uses the ink
+   colour and an icon, never a red border.
+   -------------------------------------------------------------------------- */
+.notice {
+  border: 0; border-left: 3px solid var(--ink);
+  border-radius: var(--r-tile);
+  background: var(--paper); box-shadow: var(--shadow);
+  padding: 14px 16px; gap: 12px; align-items: center;
+}
+.notice .i { width: 20px; height: 20px; color: var(--ink); }
+.notice__title { font-size: 14.5px; font-weight: 600; }
+.notice p { color: var(--ink-2); font-size: 13.5px; }
+.ab-dark .notice { background: var(--dark-2); border-left-color: var(--on-dark-2); box-shadow: none; }
+.ab-dark .notice .i, .ab-dark .notice__title { color: var(--on-dark); }
+.ab-dark .notice p { color: var(--on-dark-2); }
+
+/* --------------------------------------------------------------------------
+   20. THE PARENT'S OFFER-SEATS CONTROL
+   -------------------------------------------------------------------------- */
+.ab-togglerow--light .ab-togglerow__text span { color: var(--ink-2); }
+.ab-seatrow {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--rule);
+}
+.ab-seatnum {
+  font-size: 28px; font-weight: 300; letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums; line-height: 1;
+}
+
+/* ==========================================================================
+   21. TOUR MODE  (index.html?tour=1)
+   One long scroll of the real app. Nothing here is loaded in normal mode
+   beyond these rules, and none of it applies without the .is-tour class.
+   ========================================================================== */
+body.is-tour .topbar,
+body.is-tour .subnav,
+body.is-tour .footer { display: none; }
+
+body.is-tour .shell { max-width: none; padding: 0; }
+
+.tour {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 112px;
+  padding: 72px 16px 120px;
+}
+
+.tour__intro { max-width: 560px; text-align: center; }
+.tour__kicker {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-2); margin: 0 0 10px;
+}
+.tour__intro h1 { font-size: 40px; font-weight: 500; letter-spacing: -0.03em; margin: 0 0 14px; }
+.tour__intro p { font-size: 16px; line-height: 1.5; color: var(--ink-2); margin: 0; }
+
+.tour__section {
+  width: 100%; max-width: 430px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.tour__section--wide { max-width: 920px; }
+
+.tour__meta { display: flex; gap: 14px; align-items: flex-start; }
+.tour__num {
+  width: 32px; height: 32px; flex: none; border-radius: 50%;
+  background: var(--ink); color: var(--paper);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600;
+}
+.tour__meta h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; margin: 3px 0 6px; }
+.tour__meta p { font-size: 14px; line-height: 1.5; color: var(--ink-2); margin: 0; }
+
+.tour__stage { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+.tour__frame { width: 430px; max-width: 100%; }
+.tour__panelabel {
+  font-size: 13px; font-weight: 600; color: var(--ink-2);
+  margin: 0 0 10px; text-align: center;
+}
+
+/* The phone. No device chrome — just the app at its real width, with the
+   greige page colour behind it so it reads as the product, not a mockup. */
+.tour__phone {
+  position: relative;
+  background: var(--greige);
+  border-radius: 28px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.10);
+  overflow: hidden;
+}
+.tour__screen { padding: 16px; }
+
+/* The tap pulse: where a finger would land, just before the action runs. */
+.tour__pulse {
+  position: absolute; width: 60px; height: 60px;
+  margin: -30px 0 0 -30px; border-radius: 50%;
+  background: rgba(218, 41, 28, 0.30);
+  pointer-events: none; z-index: 3;
+  animation: tour-pulse 620ms ease-out;
+}
+@keyframes tour-pulse {
+  0%   { transform: scale(0.35); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* A brief ring to point at something already on screen. */
+.tour__flash {
+  box-shadow: 0 0 0 3px rgba(218, 41, 28, 0.55);
+  border-radius: 999px;
+  transition: box-shadow 180ms ease;
+}
+
+.tour__end { text-align: center; display: grid; gap: 16px; justify-items: center; max-width: 430px; }
+.tour__end p { font-size: 16px; color: var(--ink-2); margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tour__pulse { animation-duration: 1ms; }
+  .tour__flash { transition: none; }
+}

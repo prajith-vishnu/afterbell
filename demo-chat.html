@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trumpets — demo chat</title>
+<style>
+/* ===========================================================================
+   AfterBell — demo-chat.html
+   A prop for the demo video. Not part of the app: no imports, no data, no
+   Firebase. Open it, hit record, press 1 or 2.
+
+   It is a deliberately GENERIC phone group chat — plain grey bubbles, no
+   tails, no blue, no copy of any real messaging app's layout or colours.
+
+   Controls sit OUTSIDE the phone so you can crop them out. Or press H to
+   hide them completely and drive the whole thing from the keyboard.
+=========================================================================== */
+
+* { box-sizing: border-box; }
+
+:root {
+  --backdrop: #CFCBC6;   /* neutral surround — crop to the phone edge */
+  --phone: #FFFFFF;
+  --thread: #F7F6F4;
+  --bubble: #E6E3DF;
+  --ink: #15161A;
+  --ink-soft: #6B6761;
+  --line: #E2DFDB;
+  --radius: 18px;
+}
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--backdrop);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 24px 16px;
+}
+
+/* --------------------------------------------------------------------------
+   THE PHONE
+   -------------------------------------------------------------------------- */
+.phone {
+  width: 390px;
+  max-width: 100%;
+  height: min(760px, calc(100vh - 140px));
+  background: var(--phone);
+  border-radius: 28px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+}
+
+/* Header ------------------------------------------------------------------ */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--phone);
+  flex: none;
+}
+.bar__back {
+  width: 26px; height: 26px; flex: none;
+  color: var(--ink-soft);
+}
+.bar__avatar {
+  width: 38px; height: 38px; flex: none;
+  border-radius: 50%;
+  background: #D9D5D0;
+  color: #4A453F;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 600;
+}
+.bar__text { min-width: 0; }
+.bar__name {
+  margin: 0;
+  font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bar__sub { margin: 1px 0 0; font-size: 12px; color: var(--ink-soft); }
+
+/* Thread ------------------------------------------------------------------ */
+.thread {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--thread);
+  padding: 16px 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scrollbar-width: none;
+}
+.thread::-webkit-scrollbar { display: none; }
+
+.daystamp {
+  align-self: center;
+  font-size: 11.5px; font-weight: 600;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+  padding: 2px 0 2px;
+}
+
+/* A "run" is one or more consecutive messages from the same person. The name
+   and the avatar show once per run, the way a real group chat does. */
+.run { display: flex; gap: 9px; align-items: flex-end; }
+.run__avatar {
+  width: 28px; height: 28px; flex: none;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11.5px; font-weight: 700; color: #FFFFFF;
+  margin-bottom: 1px;
+}
+.run__body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.run__name {
+  font-size: 11.5px; font-weight: 600; color: var(--ink-soft);
+  margin-left: 12px;
+}
+
+.bubble {
+  align-self: flex-start;
+  max-width: 252px;
+  background: var(--bubble);
+  color: var(--ink);
+  border-radius: var(--radius);
+  padding: 9px 13px;
+  font-size: 15px;
+  line-height: 1.35;
+  overflow-wrap: break-word;
+}
+/* Entrance uses a TRANSITION, not an animation, on purpose: the resting
+   state is "visible", and the entrance is a class we take away. If the
+   transition never runs for any reason, the bubble still ends up visible.
+   A keyframe animation that starts at opacity 0 can get stuck there. */
+.bubble { transition: opacity 200ms ease-out, transform 200ms ease-out; }
+.bubble--enter { opacity: 0; transform: translateY(6px) scale(0.98); }
+
+/* Typing indicator: three dots in a bubble, which then becomes the message. */
+.bubble--typing { padding: 12px 14px; }
+.dots { display: inline-flex; gap: 4px; align-items: center; }
+.dots i {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #A8A49E;
+  animation: blink 1.1s infinite ease-in-out;
+}
+.dots i:nth-child(2) { animation-delay: 0.18s; }
+.dots i:nth-child(3) { animation-delay: 0.36s; }
+@keyframes blink {
+  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+  30%           { opacity: 1;    transform: translateY(-3px); }
+}
+
+/* Composer: decorative only, so the screen doesn't look truncated. */
+.composer {
+  flex: none;
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--phone);
+}
+.composer__field {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #A8A49E;
+}
+.composer__send {
+  width: 34px; height: 34px; flex: none;
+  border-radius: 50%;
+  background: #D9D5D0;
+  color: #6B6761;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* --------------------------------------------------------------------------
+   CONTROLS — outside the phone, croppable, hideable with H
+   -------------------------------------------------------------------------- */
+.controls {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  align-items: center; justify-content: center;
+  transition: opacity 160ms ease;
+}
+.controls[hidden] { display: none; }
+
+.btn {
+  font: inherit; font-size: 13.5px; font-weight: 600;
+  min-height: 40px; padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid #B4AFA9;
+  background: #F0EEEB; color: var(--ink);
+  cursor: pointer;
+}
+.btn:hover { background: #FFFFFF; }
+.btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #FFFFFF; }
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.hint {
+  width: 100%; text-align: center;
+  font-size: 12px; color: #6B6761; margin: 2px 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble--new { animation: none; }
+  .dots i { animation: none; opacity: 0.6; }
+}
+</style>
+</head>
+<body>
+
+  <div class="phone">
+    <header class="bar">
+      <svg class="bar__back" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+      <div class="bar__avatar" aria-hidden="true">T</div>
+      <div class="bar__text">
+        <h1 class="bar__name">Trumpets 🎺</h1>
+        <p class="bar__sub" id="members">9 members</p>
+      </div>
+    </header>
+
+    <div class="thread" id="thread" role="log" aria-live="polite" aria-label="Group chat"></div>
+
+    <div class="composer" aria-hidden="true">
+      <div class="composer__field">Message</div>
+      <div class="composer__send">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 19V5M5 12l7-7 7 7" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls" id="controls">
+    <button class="btn" data-scene="1" aria-pressed="false">Scene 1 — opening</button>
+    <button class="btn" data-scene="2" aria-pressed="false">Scene 2 — ending</button>
+    <button class="btn" id="replay">Replay</button>
+    <button class="btn" id="hide">Hide controls</button>
+    <p class="hint">Keys: <strong>1</strong> and <strong>2</strong> play a scene ·
+      <strong>R</strong> replays · <strong>H</strong> hides these buttons</p>
+  </div>
+
+<script>
+/* ===========================================================================
+   THE SCRIPT
+   Each message is [sender, text]. Consecutive messages from the same person
+   are grouped into one run, so the name appears once per run.
+=========================================================================== */
+const SCENES = {
+  1: {
+    stamp: 'Today 6:08 AM',
+    messages: [
+      ['Maya',   'guys warmup starts in 5'],
+      ['Maya',   'where is marcus'],
+      ['Chris',  'idk'],
+      ['Maya',   'WHERE IS MARCUS'],
+      ['Maya',   'WE HAVE A HOLE IN THE FORM'],
+      ['Marcus', "my mom's at work and the bus doesn't run this early 😭"],
+    ],
+  },
+  2: {
+    stamp: 'Today 6:13 AM',
+    messages: [
+      ['Marcus', 'got an AfterBell ride, pulling up now'],
+      ['Maya',   'MARCUS!!!'],
+    ],
+  },
+};
+
+/* Muted, non-branded avatar colours, one per person. */
+const PEOPLE = {
+  Maya:   '#8A6F63',
+  Chris:  '#5E6B72',
+  Marcus: '#6E6480',
+};
+
+const thread   = document.getElementById('thread');
+const controls = document.getElementById('controls');
+
+let runToken = 0;       // cancels an in-flight scene when you switch
+let currentScene = null;
+let currentRun = null;  // the run element being appended to
+let currentSender = null;
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Start (or restart) a scene from an empty thread. */
+async function play(sceneId) {
+  const scene = SCENES[sceneId];
+  if (!scene) return;
+
+  const token = ++runToken;   // anything still running from before now stops
+  currentScene = sceneId;
+  currentRun = null;
+  currentSender = null;
+
+  thread.innerHTML = '';
+  for (const button of controls.querySelectorAll('[data-scene]')) {
+    button.setAttribute('aria-pressed', String(button.dataset.scene === String(sceneId)));
+  }
+
+  const stamp = document.createElement('div');
+  stamp.className = 'daystamp';
+  stamp.textContent = scene.stamp;
+  thread.appendChild(stamp);
+
+  await wait(500);
+  if (token !== runToken) return;
+
+  for (const [sender, text] of scene.messages) {
+    // Typing time grows a little with the length of the message, and the gap
+    // after shrinks to match, so messages land about 1.2s apart either way.
+    const typingMs = Math.min(1000, Math.max(500, 400 + text.length * 12));
+    const gapMs = Math.max(250, 1200 - typingMs);
+
+    const bubble = openBubble(sender);
+    await wait(typingMs);
+    if (token !== runToken) return;
+
+    fillBubble(bubble, text);
+    await wait(gapMs);
+    if (token !== runToken) return;
+  }
+}
+
+/** Show a typing bubble, starting a new run if the speaker changed. */
+function openBubble(sender) {
+  if (sender !== currentSender) {
+    currentSender = sender;
+
+    currentRun = document.createElement('div');
+    currentRun.className = 'run';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'run__avatar';
+    avatar.style.background = PEOPLE[sender] || '#777';
+    avatar.textContent = sender[0];
+    avatar.setAttribute('aria-hidden', 'true');
+
+    const body = document.createElement('div');
+    body.className = 'run__body';
+
+    const name = document.createElement('div');
+    name.className = 'run__name';
+    name.textContent = sender;
+    body.appendChild(name);
+
+    currentRun.append(avatar, body);
+    thread.appendChild(currentRun);
+  }
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble bubble--typing';
+  bubble.innerHTML = '<span class="dots"><i></i><i></i><i></i></span>';
+  currentRun.querySelector('.run__body').appendChild(bubble);
+
+  scrollToEnd();
+  return bubble;
+}
+
+/** The typing bubble becomes the message. */
+function fillBubble(bubble, text) {
+  bubble.classList.remove('bubble--typing');
+  bubble.classList.add('bubble--enter');
+  bubble.textContent = text;
+
+  // Next tick, drop the entrance class so the bubble transitions to its
+  // normal state. A timer rather than requestAnimationFrame, because rAF can
+  // be throttled in a background or recorded tab and the bubble would then
+  // never appear.
+  setTimeout(() => bubble.classList.remove('bubble--enter'), 20);
+  scrollToEnd();
+}
+
+function scrollToEnd() {
+  thread.scrollTop = thread.scrollHeight;
+}
+
+/* --- controls ----------------------------------------------------------- */
+controls.addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+  if (!button) return;
+  if (button.dataset.scene) play(Number(button.dataset.scene));
+  if (button.id === 'replay' && currentScene) play(currentScene);
+  if (button.id === 'hide') controls.hidden = true;
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === '1') play(1);
+  if (event.key === '2') play(2);
+  if (event.key.toLowerCase() === 'r' && currentScene) play(currentScene);
+  if (event.key.toLowerCase() === 'h') controls.hidden = !controls.hidden;
+});
+</script>
+</body>
+</html>
