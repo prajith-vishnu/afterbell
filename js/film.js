@@ -30,8 +30,8 @@ import { formatTime } from './matching.js';
 =========================================================================== */
 const CONFIG = {
   /* >>> FILL THESE IN <<< the only two words not read from the data. */
-  presenterName: '[NAME]',
-  presenterGrade: '[GRADE]',
+  presenterName: 'Prajith Vishnu',
+  presenterGrade: 'junior',
 
   blankStartMs: 2000,       // trimmable run-in
   holdLastMs: 3000,         // hold on the final frame
@@ -40,7 +40,8 @@ const CONFIG = {
   safetyMarginMs: 5000,     // a segment is abandoned at duration + this
   maxRuntimeMs: 178000,     // 2:58 cap, enforced by the self-check
 
-  stage: { width: 1240, height: 880 },
+  // Designed at 1920x1080 and scaled to fit, so the frame is always 16:9.
+  stage: { width: 1920, height: 1080 },
 
   chat: {
     // The brief asks for about 1.3s between messages. At that pace the film
@@ -51,6 +52,19 @@ const CONFIG = {
     typePerCharMs: 20,
     typeMaxMs: 1500,
   },
+
+  /* Small pill labels that slide in beside the phone, naming the feature
+     on screen. About 2.5s each. */
+  callouts: {
+    join: 'Parent approval',
+    lisa: 'Parents offer open seats',
+    fill: 'Cross-activity matching',
+    gaps: 'Explains every gap',
+    confirmed: 'Band + Volleyball, same car',
+    handoff: 'Handoff code',
+    rules: 'Adults only · No addresses',
+  },
+  calloutMs: 2500,
 
   cast: {
     marcus: { id: 's19', role: 'Trumpets' },
@@ -66,8 +80,8 @@ const CONFIG = {
       seconds: 12, person: 'marcus',
       caption: (f) =>
         `That's ${f.marcusFirst}. It's the morning of the biggest contest of the year, and ` +
-        `without a ride to rehearsal, he can't march. In marching band, one empty spot ` +
-        `leaves a hole in the whole show.`,
+        `without a ride to rehearsal, he can't march. In marching band, ` +
+        `<strong>one empty spot leaves a hole in the whole show</strong>.`,
     },
 
     title: {
@@ -75,22 +89,23 @@ const CONFIG = {
       caption: (f) =>
         `I'm ${f.presenterName}, a ${f.presenterGrade} at Braswell, and this is AfterBell: ` +
         `a free app that matches students who need rides to their activities with ` +
-        `parent-approved drivers. It's for students, parents, and directors, and over ` +
-        `100 students told me it's a great idea.`,
+        `<strong>parent-approved drivers</strong>. It's for students, parents, and directors, ` +
+        `and over 100 students told me it's a great idea.`,
     },
 
     join: {
       seconds: 11, person: 'marcus',
       caption: (f) =>
         `${f.marcusFirst} gets AfterBell and joins his band with a code from his director. ` +
-        `Students can't ride until a parent approves them, so his mom approves the request.`,
+        `Students <strong>can't ride until a parent approves them</strong>, so his mom ` +
+        `approves the request.`,
     },
 
     request: {
       seconds: 8, person: 'marcus',
       caption: () =>
         `He requests a ride to the 6:30 rehearsal. While he waits, here's what's happening ` +
-        `behind the scenes.`,
+        `<strong>behind the scenes</strong>.`,
     },
 
     behind: { seconds: 2, person: null, caption: null },
@@ -99,24 +114,24 @@ const CONFIG = {
       seconds: 9, person: 'lisa',
       caption: (f) =>
         `Lisa, Dev's next-door neighbor, is already driving her daughter Jada to volleyball ` +
-        `practice at the same time, and she has ` +
-        `${f.lisaSeats === 1 ? 'one open seat' : `${f.lisaSeats} open seats`}.`,
+        `practice at the same time, and she has <strong>` +
+        `${f.lisaSeats === 1 ? 'one open seat' : `${f.lisaSeats} open seats`}</strong>.`,
     },
 
     fill: {
       seconds: 18, person: 'moreno',
       caption: (f) =>
         `On the band director's screen, ${f.total} marchers need a ride this morning, and ` +
-        `${f.before} have one. He taps Fill the Gaps. AfterBell's algorithm looks at every ` +
-        `activity, not just band. It groups everyone heading to the same place at the same ` +
-        `time, clusters them by neighborhood, and assigns parent drivers while checking ` +
-        `seats and distance.`,
+        `${f.before} have one. He taps <strong>Fill the Gaps</strong>. AfterBell's algorithm ` +
+        `looks at <strong>every activity</strong>, not just band. It groups everyone heading ` +
+        `to the same place at the same time, clusters them by neighborhood, and assigns ` +
+        `parent drivers while checking seats and distance.`,
     },
 
     gaps: {
       seconds: 10, person: 'moreno',
       caption: (f) =>
-        `${f.unmatchedCount} couldn't be matched, and AfterBell explains why: ` +
+        `${f.unmatchedCount} couldn't be matched, and AfterBell <strong>explains why</strong>: ` +
         `${f.shortReason}. So the director assigns them to ${f.chaperoneName}.`,
     },
 
@@ -125,30 +140,30 @@ const CONFIG = {
       caption: (f) =>
         `Back on ${f.marcusFirst}'s phone, his ride is confirmed: ${f.lisaFirst} and Jada, ` +
         `on their way to volleyball. A band kid and a volleyball player. Different ` +
-        `activities, same neighborhood, same time.`,
+        `activities, <strong>same neighborhood, same time</strong>.`,
     },
 
     handoff: {
       seconds: 10, person: 'marcus',
       caption: () =>
-        `At pickup, they see the same code, so he never gets in the wrong car, and his mom ` +
-        `is notified the moment he's picked up.`,
+        `At pickup, they see the <strong>same code</strong>, so he never gets in the wrong ` +
+        `car, and his mom is notified the moment he's picked up.`,
     },
 
     code: {
       seconds: 12, person: null,
       caption: () =>
         `It's built with HTML, CSS, and JavaScript. The algorithm groups requests by time ` +
-        `and place, measures distance between neighborhoods with the haversine formula, ` +
-        `and fills seats closest-first within three miles.`,
+        `and place, measures distance between neighborhoods with the ` +
+        `<strong>haversine formula</strong>, and fills seats closest-first within three miles.`,
     },
 
     rules: {
       seconds: 12, person: null,
       caption: () =>
-        `Only parent-approved adults can drive, and AfterBell stores neighborhoods, never ` +
-        `home addresses. Building this taught me that the hardest part of an app isn't the ` +
-        `code. It's the rules real people live by.`,
+        `Only parent-approved adults can drive, and AfterBell stores neighborhoods, ` +
+        `<strong>never home addresses</strong>. Building this taught me that the hardest ` +
+        `part of an app isn't the code. It's the rules real people live by.`,
     },
 
     chat2: { seconds: null, person: 'marcus', caption: null },
@@ -157,7 +172,7 @@ const CONFIG = {
       seconds: 9, person: 'moreno',
       caption: () =>
         `AfterBell. Built by a Braswell student for every band, team, and cast that needs ` +
-        `everyone there. Every spot filled.`,
+        `everyone there. <strong>Every spot filled</strong>.`,
     },
   },
 
@@ -394,9 +409,9 @@ function setPerson(key) {
   }, 100 / speed);
 }
 
-function setCaption(text) {
-  dom.caption.textContent = text || '';
-  dom.caption.hidden = !captionsOn || !text;
+function setCaption(html) {
+  dom.caption.innerHTML = html || '';
+  dom.caption.hidden = !captionsOn || !html;
 }
 
 async function tap(target) {
@@ -460,6 +475,106 @@ function markEverySpotFilled() {
   }
 }
 
+/* ---------------------------------------------------------------------------
+   THE CAMERA
+   A slow push-in on every segment, and a closer look on the segments that
+   earn one. Only `transform` is ever touched, so nothing inside re-wraps.
+--------------------------------------------------------------------------- */
+function cameraSet(transform, ms, easing = 'cubic-bezier(.4, 0, .2, 1)') {
+  dom.camera.style.transition = `transform ${ms / speed}ms ${easing}`;
+  dom.camera.style.transform = transform;
+}
+
+function cameraReset() {
+  dom.camera.style.transition = 'none';
+  dom.camera.style.transform = 'scale(1)';
+  void dom.camera.offsetWidth;   // commit the reset before the next change
+}
+
+/**
+ * The push-in that runs under every segment: 1.00 to 1.03, linear.
+ * Not more than 1.03 — at 1.04 the growth exceeded the app's own 16px
+ * gutter and clipped the first letter of a heading.
+ */
+function cameraPushIn(ms) {
+  cameraSet('scale(1.03)', ms, 'linear');
+}
+
+/**
+ * Move in on one element. `scale(s) translate(t)` applies the translate in
+ * local space first, so t is simply the element's offset from the centre,
+ * negated. Kept modest so the text stays crisp.
+ */
+async function cameraZoom(target, scale = 1.22, ms = 900) {
+  if (!target) return;
+  const phoneBox = dom.phone.getBoundingClientRect();
+  const targetBox = target.getBoundingClientRect();
+  const stageScale = phoneBox.width / dom.phone.offsetWidth || 1;
+  const dx = (targetBox.left + targetBox.width / 2 - (phoneBox.left + phoneBox.width / 2)) / stageScale;
+  const dy = (targetBox.top + targetBox.height / 2 - (phoneBox.top + phoneBox.height / 2)) / stageScale;
+  cameraSet(`scale(${scale}) translate(${(-dx).toFixed(1)}px, ${(-dy).toFixed(1)}px)`, ms);
+  await sleep(ms);
+}
+
+/** Back out to the push-in. */
+async function cameraRelease(ms = 900) {
+  cameraSet('scale(1.03)', ms);
+  await sleep(ms);
+}
+
+/** A pill naming the feature on screen. Fire and forget: never extends a segment. */
+function callout(text) {
+  if (!text) return;
+  const chip = document.createElement('div');
+  chip.className = 'callout';
+  chip.textContent = text;
+  dom.middle.appendChild(chip);
+  setTimeout(() => chip.classList.add('is-in'), 40 / speed);
+  setTimeout(() => chip.classList.remove('is-in'), (40 + CONFIG.calloutMs) / speed);
+  setTimeout(() => chip.remove(), (40 + CONFIG.calloutMs + 600) / speed);
+}
+
+/** The headline count beside the phone, climbing with the ticks. */
+function bigNumber(from, to, total, ms) {
+  const node = document.createElement('div');
+  node.className = 'bignum';
+  node.innerHTML = `<span class="bignum__n">${from}</span><span class="bignum__of">of ${total}</span>`;
+  dom.middle.appendChild(node);
+  setTimeout(() => node.classList.add('is-in'), 40 / speed);
+
+  const figure = node.querySelector('.bignum__n');
+  const stepMs = Math.max(30, ms / Math.max(1, to - from)) / speed;
+  let current = from;
+  const timer = setInterval(() => {
+    if (!figure.isConnected) return clearInterval(timer);
+    current += 1;
+    figure.textContent = String(current);
+    if (current >= to) clearInterval(timer);
+  }, stepMs);
+  setTimeout(() => {
+    clearInterval(timer);
+    if (figure.isConnected) figure.textContent = String(to);
+  }, ms / speed + 500);
+  return node;
+}
+
+/** A clean full-stage sweep in the accent colour. */
+async function wipeIn(ms = 420) {
+  const sheet = document.createElement('div');
+  sheet.className = 'wipe';
+  dom.stage.appendChild(sheet);
+  await sleep(20);
+  sheet.classList.add('is-across');
+  await sleep(ms);
+  return sheet;
+}
+async function wipeOut(sheet, ms = 420) {
+  if (!sheet) return;
+  sheet.classList.add('is-gone');
+  await sleep(ms);
+  sheet.remove();
+}
+
 async function ringEach(nodes, hold) {
   for (const node of nodes) {
     node.classList.add('ring');
@@ -499,18 +614,34 @@ const isShout = (text) => {
   return letters.length >= 4 && letters === letters.toUpperCase();
 };
 
+/**
+ * Play one chat scene.
+ *
+ * THE BUG THIS FIXES: the old version appended a small typing bubble and then
+ * wrote the text into it. The element grew from "three dots" to "a sentence",
+ * so every bubble visibly resized as it landed and the thread jumped.
+ *
+ * Now the bubble is appended with its FINAL text immediately, at opacity 0,
+ * so the layout settles once and never moves again. The typing indicator is
+ * absolutely positioned inside that already-reserved space, so it sits
+ * exactly where the message will appear and costs no layout of its own. The
+ * swap is a pure opacity crossfade: nothing above or below shifts, and only
+ * transform and opacity are ever animated.
+ */
 async function playChat(key) {
   const thread = dom.viewport.querySelector('.chat__thread');
   let lastSender = null;
-  let group = null;
+  let body = null;
 
   for (const [sender, text, clock] of CONFIG.chats[key]) {
-    // A new group starts whenever the speaker changes. The name and the time
-    // appear once per group, above the first bubble.
+    const mine = sender === ME;
+
+    // A new group whenever the speaker changes. The avatar, the name and the
+    // time are written once, before the group's first bubble, and are never
+    // touched again.
     if (sender !== lastSender) {
       lastSender = sender;
-      const mine = sender === ME;
-      group = document.createElement('div');
+      const group = document.createElement('div');
       group.className = mine ? 'group group--me' : 'group';
       group.innerHTML = mine
         ? '<div class="group__body"></div>'
@@ -519,20 +650,39 @@ async function playChat(key) {
              <div class="group__head"><b>${esc(sender)}</b> · ${esc(clock)}</div>
            </div>`;
       thread.appendChild(group);
+      body = group.querySelector('.group__body');
     }
 
+    // One slot per message. The bubble inside it carries the final text from
+    // the first frame, so the slot is already its final size.
+    const slot = document.createElement('div');
+    slot.className = mine ? 'slot slot--me' : 'slot';
+
     const bubble = document.createElement('div');
-    bubble.className = `msg${sender === ME ? ' msg--me' : ''} msg--typing`;
-    bubble.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
-    group.querySelector('.group__body').appendChild(bubble);
-    thread.scrollTop = thread.scrollHeight;
+    bubble.className = mine ? 'msg msg--me is-pending' : 'msg is-pending';
+    // The heavier ALL CAPS weight goes on NOW, before the browser measures
+    // the text, so the bubble is laid out once at its final width.
+    if (isShout(text)) bubble.classList.add('msg--caps');
+    bubble.textContent = text;
+
+    const dots = document.createElement('span');
+    dots.className = mine ? 'dots dots--me' : 'dots';
+    dots.innerHTML = '<i></i><i></i><i></i>';
+
+    slot.append(bubble, dots);
+    body.appendChild(slot);
+
+    // Scroll once, now that the space is reserved, so the message does not
+    // move the view when it appears.
+    thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
 
     await sleep(typingMsFor(text));
 
-    bubble.classList.remove('msg--typing');
-    bubble.textContent = text;
-    if (isShout(text)) bubble.classList.add('msg--shout');
-    thread.scrollTop = thread.scrollHeight;
+    // Crossfade: dots out, bubble in. Opacity and transform only.
+    dots.classList.add('is-out');
+    bubble.classList.remove('is-pending');
+    if (isShout(text)) bubble.classList.add('msg--shake');
+    setTimeout(() => dots.remove(), 400 / speed);
 
     await sleep(CONFIG.chat.gapMs);
   }
@@ -555,8 +705,9 @@ const SCENES = {
       const bubbles = dom.viewport.querySelectorAll('.msg').length;
       if (bubbles !== CONFIG.chats.chat1.length) out.push(`${bubbles} bubbles, expected ${CONFIG.chats.chat1.length}`);
       if (!dom.viewport.querySelectorAll('.msg--me').length) out.push("Marcus's messages are not on the right");
-      if (!dom.viewport.querySelector('.msg--shout')) out.push('no ALL CAPS shake applied');
-      if (dom.viewport.querySelector('.msg--typing')) out.push('a typing indicator never resolved');
+      if (!dom.viewport.querySelector('.msg--caps')) out.push('no ALL CAPS styling applied');
+      if (dom.viewport.querySelector('.msg.is-pending')) out.push('a bubble never faded in');
+      if (dom.viewport.querySelector('.dots:not(.is-out)')) out.push('a typing indicator never resolved');
       if (!/Trumpets/.test(dom.viewport.textContent)) out.push('group title missing');
       return out;
     },
@@ -572,23 +723,43 @@ const SCENES = {
 
   title: {
     async run() {
-      dom.card.innerHTML = `<div class="bigcard">
-        <div class="wordmark">AfterBell<span class="wordmark__dot"></span></div>
-        <p class="bigcard__tag">Every spot filled</p>
+      // Kinetic typography: the wordmark lands, then one word at a time,
+      // then the three lines slide up.
+      dom.card.innerHTML = `<div class="bigcard bigcard--title">
+        <div class="wordmark kinetic">AfterBell<span class="wordmark__dot"></span></div>
+        <p class="kinetic-line">
+          <span class="kinetic">Every.</span>
+          <span class="kinetic">Spot.</span>
+          <span class="kinetic">Filled.</span>
+        </p>
         <ul class="bigcard__list">
           <li>Built by ${esc(CONFIG.presenterName)}, Braswell High School</li>
           <li>For students, parents, and directors</li>
           <li>100+ students said it's a great idea.</li>
         </ul>
       </div>`;
+
+      await sleep(500);
+      dom.card.querySelector('.wordmark').classList.add('is-in');
+      await sleep(900);
+      for (const word of [...dom.card.querySelectorAll('.kinetic-line .kinetic')]) {
+        word.classList.add('is-in');
+        await sleep(620);
+      }
+      await sleep(400);
       for (const item of [...dom.card.querySelectorAll('.bigcard__list li')]) {
-        await sleep(1600);
         item.classList.add('is-in');
+        await sleep(700);
       }
     },
     check: () => {
-      const shown = dom.card.querySelectorAll('.bigcard__list li.is-in').length;
-      return shown === 3 ? [] : [`${shown} of 3 title lines appeared`];
+      const out = [];
+      const lines = dom.card.querySelectorAll('.bigcard__list li.is-in').length;
+      const words = dom.card.querySelectorAll('.kinetic-line .kinetic.is-in').length;
+      if (lines !== 3) out.push(`${lines} of 3 title lines appeared`);
+      if (words !== 3) out.push(`${words} of 3 kinetic words landed`);
+      if (!dom.card.querySelector('.wordmark.is-in')) out.push('wordmark never landed');
+      return out;
     },
   },
 
@@ -638,7 +809,13 @@ const SCENES = {
 
   behind: {
     async run() {
+      // A clean sweep in the accent colour on the way in and on the way out.
+      const sheet = await wipeIn(400);
       dom.card.innerHTML = `<div class="bigcard"><p class="bigcard__line">Behind the scenes</p></div>`;
+      await wipeOut(sheet, 400);
+      await sleep(800);
+      const closing = await wipeIn(400);
+      closing.dataset.closing = '1';
     },
     check: () => (/Behind the scenes/.test(dom.card.textContent) ? [] : ['card text missing']),
   },
@@ -678,9 +855,13 @@ const SCENES = {
 
       restore('filled');
       await show(as('o-moreno', 'organizer', () => Screens.organizer(BAND_AM)));
+      const ticksMs = facts.matchedOrder.length * 55 + 1100;
+      await cameraZoom(dom.viewport.querySelector('.dial'), 1.2, 700);
       fillTicks(facts.matchedOrder, 55);
       countUp(dom.viewport.querySelector('.dial__num'), facts.before, facts.after);
-      await sleep(facts.matchedOrder.length * 55 + 1100);
+      bigNumber(facts.before, facts.after, facts.total, ticksMs);
+      await sleep(ticksMs);
+      await cameraRelease(700);
       if (!facts.unmatchedCount) markEverySpotFilled();
     },
     check: () => {
@@ -730,8 +911,10 @@ const SCENES = {
       notify('car-front', `Ride confirmed — ${facts.lisaName}, ${facts.car}, ${facts.pickupTime}`);
       await sleep(2200);
       await show(as(MARCUS, 'student', () => Screens.rideCard(facts.rideId)));
-      await sleep(700);
-      await ringEach([...dom.viewport.querySelectorAll('.person__act')], 1100);
+      await sleep(500);
+      await cameraZoom(dom.viewport.querySelector('.people'), 1.22, 700);
+      await ringEach([...dom.viewport.querySelectorAll('.person__act')], 900);
+      await cameraRelease(700);
     },
     check: () => {
       const out = [];
@@ -757,11 +940,13 @@ const SCENES = {
         <p class="inset__sub">Driver's screen</p>`;
       dom.phone.appendChild(inset);
 
-      await sleep(1300);
+      await sleep(900);
+      await cameraZoom(dom.viewport.querySelector('.handoff'), 1.18, 700);
       const code = dom.viewport.querySelector('.handoff__code');
       code.classList.add('ring');
       inset.classList.add('ring');
-      await sleep(2000);
+      await sleep(1800);
+      await cameraRelease(700);
       code.classList.remove('ring');
       inset.classList.remove('ring');
 
@@ -890,6 +1075,14 @@ const totalRuntimeMs = () => ORDER.reduce((sum, key) => sum + segmentMs(key), 0)
 =========================================================================== */
 function clearStage() {
   dom.phone.querySelectorAll('.toast, .inset, .signoff, .pulse').forEach((node) => node.remove());
+  dom.middle.querySelectorAll('.callout, .bignum').forEach((node) => node.remove());
+
+  // A wipe left covering the stage sweeps off to reveal what comes next,
+  // rather than being cut away.
+  dom.stage.querySelectorAll('.wipe').forEach((sheet) => {
+    sheet.classList.add('is-gone');
+    setTimeout(() => sheet.remove(), 500 / speed);
+  });
   dom.card.innerHTML = '';
 }
 
@@ -922,6 +1115,8 @@ function withSafetyTimeout(promise, ms, label) {
   return Promise.race([work, guard]);
 }
 
+let lastPerson = null;
+
 async function playSegment(key, index) {
   const spec = CONFIG.segments[key];
   const number = index + 1;
@@ -933,13 +1128,30 @@ async function playSegment(key, index) {
   dom.phone.classList.toggle('is-hidden', isCard);
   dom.card.classList.toggle('is-hidden', !isCard);
 
+  // When the phone changes hands, it slides out and back while the content
+  // swaps underneath. Fire and forget, so it costs the segment no time.
+  const personChanged = Boolean(spec.person) && spec.person !== lastPerson && !isCard;
+  if (personChanged) {
+    dom.phone.classList.add('is-swapping');
+    setTimeout(() => dom.phone.classList.remove('is-swapping'), 300 / speed);
+  }
+  if (spec.person) lastPerson = spec.person;
+
   setPerson(spec.person);
   setCaption(spec.caption ? spec.caption(facts) : '');
 
   const duration = segmentMs(key);
+
+  // The slow push-in that runs under every segment.
+  cameraReset();
+  if (!isCard) cameraPushIn(duration);
+
+  // The pill naming the feature on screen, if this segment has one.
+  if (CONFIG.callouts[key]) {
+    setTimeout(() => callout(CONFIG.callouts[key]), 900 / speed);
+  }
+
   try {
-    // At least the scheduled time, never cut off mid-animation, and never
-    // able to hang: whichever of those finishes last wins, up to the cap.
     await withSafetyTimeout(
       Promise.all([sleep(duration), SCENES[key].run()]),
       duration / speed + CONFIG.safetyMarginMs,
@@ -951,10 +1163,24 @@ async function playSegment(key, index) {
   console.log(`Finished segment ${number} (${key})`);
 }
 
+function showEndCard() {
+  dom.endcard.innerHTML = `<div class="endcard__inner">
+    <div class="wordmark">AfterBell<span class="wordmark__dot"></span></div>
+    <p class="endcard__tag">Every spot filled</p>
+    <p class="endcard__credit">Built by ${esc(CONFIG.presenterName)} ·
+      Braswell High School · Congressional App Challenge 2026</p>
+  </div>`;
+  dom.endcard.hidden = false;
+  setTimeout(() => dom.endcard.classList.add('is-in'), 30);
+}
+
 async function playFilm() {
   const mine = ++token;
   runTheAlgorithm();
 
+  dom.endcard.hidden = true;
+  dom.endcard.classList.remove('is-in');
+  dom.blank.classList.remove('is-fade', 'is-in');
   dom.blank.hidden = false;
   await sleep(CONFIG.blankStartMs);
   if (mine !== token) return;
@@ -966,13 +1192,17 @@ async function playFilm() {
   }
 
   if (mine !== token) return;
+
+  // The end card, held for three seconds, then a fade to black.
+  setCaption('');
+  setPerson(null);
+  showEndCard();
   await sleep(CONFIG.holdLastMs);
   if (mine !== token) return;
 
-  // A blank tail to trim against. Nothing else appears.
-  setCaption('');
-  setPerson(null);
+  dom.blank.classList.add('is-fade');
   dom.blank.hidden = false;
+  setTimeout(() => dom.blank.classList.add('is-in'), 30);
   console.log('[film] done');
 }
 
@@ -1002,7 +1232,7 @@ async function selfCheck() {
       if (spec.caption) {
         const text = spec.caption(facts);
         if (/undefined|NaN|\{\w+\}/.test(text)) problems.push('caption has an unfilled placeholder');
-        if (dom.caption.textContent !== text) problems.push('caption not displayed');
+        if (dom.caption.innerHTML !== text) problems.push('caption not displayed');
       }
     } catch (error) {
       problems.push(`threw: ${error.message}`);
@@ -1037,34 +1267,50 @@ async function selfCheck() {
 /* ===========================================================================
    BOOT
 =========================================================================== */
+/**
+ * The stage is always exactly 16:9. By default it scales to fit the window;
+ * `?size=720` pins it to exactly 1280x720 CSS pixels whatever the window is.
+ */
 function fitStage() {
-  const scale = Math.min(
-    window.innerWidth / CONFIG.stage.width,
-    window.innerHeight / CONFIG.stage.height
+  if (new URLSearchParams(location.search).get('size') === '720') {
+    dom.stage.style.setProperty('--scale', String(1280 / CONFIG.stage.width));
+    return;
+  }
+  dom.stage.style.setProperty(
+    '--scale',
+    String(Math.min(window.innerWidth / CONFIG.stage.width, window.innerHeight / CONFIG.stage.height))
   );
-  dom.stage.style.setProperty('--scale', String(Math.min(1, scale)));
 }
 
-function goFullscreen() {
-  const node = document.documentElement;
-  const request = node.requestFullscreen || node.webkitRequestFullscreen;
-  if (!request) return;
+/**
+ * Nothing may change size once the film is rolling, so Start waits for the
+ * webfont to be ready and for one map tile to have come back.
+ */
+async function waitUntilReady() {
   try {
-    // Safari's version returns undefined; Chrome's returns a promise that
-    // rejects when the click is not treated as a gesture. Neither may stop
-    // the film, so both paths are swallowed.
-    const result = request.call(node);
-    if (result && typeof result.catch === 'function') result.catch(() => {});
-  } catch {
-    /* a blocked request must not stop the film */
-  }
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+  } catch { /* an older browser can just go */ }
+
+  await new Promise((resolve) => {
+    const tile = new Image();
+    const done = () => resolve();
+    tile.onload = done;
+    tile.onerror = done;
+    tile.src = 'https://a.tile.openstreetmap.org/12/965/1680.png';
+    setTimeout(done, 2500);        // never block Start on a slow network
+  });
 }
 
 function backToStart() {
   token += 1;
   paused = false;
+  lastPerson = null;
   document.body.classList.remove('is-playing');
   dom.blank.hidden = true;
+  dom.blank.classList.remove('is-fade', 'is-in');
+  dom.endcard.hidden = true;
+  dom.endcard.classList.remove('is-in');
+  cameraReset();
   clearStage();
   dom.viewport.innerHTML = '';
   setCaption('');
@@ -1076,20 +1322,27 @@ function build() {
   document.getElementById('film').innerHTML = `
     <div class="stage" id="stage">
       <div class="who" id="who"></div>
-      <div class="middle">
-        <div class="phone" id="phone"><div class="viewport" id="viewport"></div></div>
+      <div class="middle" id="middle">
+        <div class="phone" id="phone">
+          <div class="camera" id="camera"><div class="viewport" id="viewport"></div></div>
+        </div>
         <div class="cardslot is-hidden" id="cardslot"></div>
       </div>
       <p class="caption" id="caption" hidden></p>
+      <div class="startscreen" id="startscreen">
+        <button class="startbtn" id="startbtn" disabled>Start</button>
+      </div>
     </div>
+    <div class="endcard" id="endcard" hidden></div>
     <div class="blank" id="blank" hidden></div>
-    <div class="startscreen" id="startscreen">
-      <button class="startbtn" id="startbtn">Start</button>
-    </div>
+
     <pre class="report" id="report" hidden></pre>`;
 
   dom = {
     stage: document.getElementById('stage'),
+    middle: document.getElementById('middle'),
+    camera: document.getElementById('camera'),
+    endcard: document.getElementById('endcard'),
     who: document.getElementById('who'),
     phone: document.getElementById('phone'),
     viewport: document.getElementById('viewport'),
@@ -1124,10 +1377,12 @@ function build() {
     }
   }
 
-  document.getElementById('startbtn').addEventListener('click', () => {
+  const startButton = document.getElementById('startbtn');
+  waitUntilReady().then(() => { startButton.disabled = false; });
+
+  startButton.addEventListener('click', () => {
     dom.start.hidden = true;
     document.body.classList.add('is-playing');
-    goFullscreen();
     playFilm();
   });
 

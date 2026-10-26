@@ -219,4 +219,4 @@ To update the site later, just run `firebase deploy --only hosting` again.
 
 ---
 
-Built by a student at Ray Braswell High School, Denton ISD.
+Built by **Prajith Vishnu**, Ray Braswell High School, Denton ISD.

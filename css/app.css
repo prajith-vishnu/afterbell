@@ -29,10 +29,20 @@
   --surface: #FFF5EF;      /* light warm fills */
   --surface-2: #FFE9DC;    /* selected rows, soft highlights */
   --line: #F0E6DE;
-  --muted: #8C8C8C;        /* secondary text — 4.6:1 on white */
+  /* Secondary text. The kit's #8C8C8C measures only 3.36:1 on white, which
+     fails AA for body text, and it is used on every screen. #6E6E6E is the
+     same mid grey a shade deeper and measures 5.10:1. */
+  --muted: #6E6E6E;
 
-  --orange: #FF6A13;       /* the accent */
-  --orange-deep: #E85A00;  /* behind small white text, for contrast */
+  --orange: #FF6A13;       /* the accent, for fills */
+  --orange-deep: #E85A00;  /* behind white text */
+  /* One deeper tone that works BOTH ways at 4.91:1: as orange text on a
+     light background, and as a background behind white text. The bright
+     --orange stays for fills that carry no text — dial ticks, route lines,
+     the location dot, toggles. White on #FF6A13 is only 2.87:1, which no
+     font size fixes for body copy. */
+  --orange-text: #C24A00;
+  --orange-ink: #C24A00;
   --orange-tint: #FFE9DC;
 
   /* Kept so the dial's own tokens stay readable in one place. */
@@ -215,18 +225,21 @@ a { color: var(--black); text-underline-offset: 3px; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   min-height: var(--btn-h); padding: 0 20px; width: 100%;
-  border: 1px solid var(--orange); border-radius: var(--r-pill);
-  background: var(--orange); color: var(--white);
-  font: inherit; font-size: 16px; font-weight: 700; cursor: pointer;
+  /* White on the brand orange is only 2.87:1, so the primary button sits on
+     the deeper orange and its label is 19px bold, which clears the 3:1 bar
+     WCAG sets for large text. */
+  border: 1px solid var(--orange-ink); border-radius: var(--r-pill);
+  background: var(--orange-ink); color: var(--white);
+  font: inherit; font-size: 19px; font-weight: 700; cursor: pointer;
   text-decoration: none;
 }
-.btn:hover { background: var(--orange-deep); border-color: var(--orange-deep); }
+.btn:hover { background: #A33E00; border-color: #A33E00; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn--ghost { background: var(--white); color: var(--orange-deep); border-color: var(--orange); }
+.btn--ghost { background: var(--white); color: var(--orange-text); border-color: var(--orange); }
 .btn--ghost:hover { background: var(--orange-tint); }
 .btn--quiet { background: var(--surface); border-color: var(--surface); color: var(--black); }
 .btn--quiet:hover { background: var(--surface-2); border-color: var(--surface-2); }
-.btn--sm { min-height: var(--tap); font-size: 14px; width: auto; padding: 0 16px; border-radius: var(--r-pill); }
+.btn--sm { min-height: var(--tap); font-size: 16px; width: auto; padding: 0 18px; border-radius: var(--r-pill); }
 .btn--danger { background: var(--white); color: #C62828; border-color: #F3C9C6; }
 .btn .i { width: 18px; height: 18px; }
 
@@ -248,7 +261,7 @@ a { color: var(--black); text-underline-offset: 3px; }
   cursor: pointer; text-align: left;
 }
 .searchpill:hover { background: var(--surface-2); }
-.searchpill .i { color: var(--orange); }
+.searchpill .i { color: var(--orange-text); }
 .searchpill__now { margin-left: auto; flex: none; background: var(--white); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 7px 14px; font-size: 13px; font-weight: 700; }
 .searchpill .i { width: 20px; height: 20px; flex: none; }
 
@@ -267,7 +280,7 @@ a { color: var(--black); text-underline-offset: 3px; }
 }
 button.chip { cursor: pointer; }
 button.chip:hover { border-color: var(--orange); }
-.chip[aria-pressed="true"] { background: var(--orange); border-color: var(--orange); color: var(--white); }
+.chip[aria-pressed="true"] { background: var(--orange-ink); border-color: var(--orange-ink); color: var(--white); }
 .chip--quiet { background: var(--surface); border-color: var(--surface); color: var(--muted); }
 .chip--done { background: var(--surface); border-color: var(--surface); color: var(--black); }
 .chip--done .i { width: 15px; height: 15px; }
@@ -301,7 +314,7 @@ button.chip:hover { border-color: var(--orange); }
   width: 46px; height: 46px; flex: none;
   border-radius: 16px; background: var(--surface);
   display: flex; align-items: center; justify-content: center;
-  color: var(--orange-deep);
+  color: var(--orange-text);
 }
 .tile .i { width: 22px; height: 22px; }
 
@@ -317,17 +330,17 @@ button.chip:hover { border-color: var(--orange); }
 .card--fill { background: var(--surface); border-color: var(--surface); box-shadow: none; }
 /* The hero card: big orange panel carrying the headline number. */
 .card--hero {
-  background: var(--orange); border-color: var(--orange); color: var(--white);
+  background: var(--orange-ink); border-color: var(--orange-ink); color: var(--white);
   border-radius: var(--r-card); padding: 22px; box-shadow: var(--shadow-soft);
 }
-.card--hero .label { color: rgba(255, 255, 255, 0.92); }
+.card--hero .label { color: #fff; }
 .card--hero .hero__num { font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
-.card--hero .hero__sub { font-size: 15px; font-weight: 600; color: rgba(255, 255, 255, 0.95); margin-top: 4px; }
+.card--hero .hero__sub { font-size: 17px; font-weight: 700; color: #fff; margin-top: 6px; }
 .hero__actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
 .hero__btn {
   flex: 1 1 auto; min-height: 48px; padding: 0 18px;
   border-radius: var(--r-pill); border: 0; background: var(--white);
-  color: var(--orange-deep); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+  color: var(--orange-text); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
 }
 .hero__btn:hover { background: var(--orange-tint); }
@@ -345,7 +358,7 @@ button.chip:hover { border-color: var(--orange); }
    -------------------------------------------------------------------------- */
 .avatar {
   width: 44px; height: 44px; flex: none; border-radius: 50%;
-  background: var(--orange-tint); color: var(--orange-deep);
+  background: var(--orange-tint); color: var(--black);
   display: inline-flex; align-items: center; justify-content: center;
   font-size: 15px; font-weight: 700; letter-spacing: 0.02em;
 }
@@ -439,7 +452,7 @@ select { padding-right: 36px; }
   font: inherit; font-size: 20px; font-weight: 700; cursor: pointer;
   display: grid; place-items: center;
 }
-.stepper__btn:hover { border-color: var(--orange); color: var(--orange-deep); }
+.stepper__btn:hover { border-color: var(--orange); color: var(--orange-text); }
 .stepper__btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .stepper__value { min-width: 40px; text-align: center; font-size: 20px; font-weight: 700; }
 
@@ -450,7 +463,7 @@ select { padding-right: 36px; }
   display: flex; gap: 12px; align-items: flex-start;
   background: var(--surface); border-radius: var(--r-tile); padding: 14px 16px;
 }
-.notice .i { color: var(--orange-deep); }
+.notice .i { color: var(--orange-text); }
 .notice .i { width: 20px; height: 20px; flex: none; margin-top: 1px; }
 .notice__title { font-weight: 700; font-size: 16px; }
 .notice p { font-size: 14px; color: var(--muted); margin-top: 3px; }
@@ -458,7 +471,7 @@ select { padding-right: 36px; }
 .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
 .empty__icon {
   width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%;
-  background: var(--orange-tint); display: grid; place-items: center; color: var(--orange-deep);
+  background: var(--orange-tint); display: grid; place-items: center; color: var(--orange-text);
 }
 .empty__icon .i { width: 26px; height: 26px; }
 .empty h3 { color: var(--black); margin-bottom: 6px; }
@@ -481,7 +494,7 @@ select { padding-right: 36px; }
 }
 .tab .i { width: 22px; height: 22px; }
 .tab span { font-size: 12px; font-weight: 700; }
-.tab[aria-current="page"] { color: var(--orange); }
+.tab[aria-current="page"] { color: var(--orange-text); }
 
 /* --------------------------------------------------------------------------
    17. WORDMARK
@@ -530,10 +543,10 @@ select { padding-right: 36px; }
   font: inherit; font-size: 12px; font-weight: 700; color: var(--black); cursor: pointer;
 }
 .quick:hover { border-color: var(--orange); }
-.quick[aria-pressed="true"] { background: var(--orange-tint); border-color: var(--orange); color: var(--orange-deep); }
+.quick[aria-pressed="true"] { background: var(--orange-tint); border-color: var(--orange); color: var(--orange-text); }
 .quick__icon {
   width: 42px; height: 42px; border-radius: 14px; background: var(--white);
-  display: grid; place-items: center; color: var(--orange-deep);
+  display: grid; place-items: center; color: var(--orange-text);
 }
 .quick__icon .i { width: 20px; height: 20px; }
 
@@ -568,18 +581,18 @@ select { padding-right: 36px; }
 
 /* Full-screen orange welcome. */
 .welcome {
-  background: var(--orange); color: var(--white);
+  background: var(--orange-ink); color: var(--white);
   min-height: 100vh; box-sizing: border-box;
   display: flex; flex-direction: column; justify-content: flex-end;
   padding: 32px 20px 40px; gap: 18px;
 }
 .welcome .wordmark { color: var(--white); font-size: 40px; }
 .welcome .wordmark__dot { background: var(--white); }
-.welcome p { font-size: 17px; font-weight: 600; color: rgba(255, 255, 255, 0.95); max-width: 30ch; }
+.welcome p { font-size: 19px; font-weight: 700; color: #fff; max-width: 30ch; }
 .welcome__btn {
   min-height: var(--btn-h); border-radius: var(--r-pill); border: 0;
-  background: var(--white); color: var(--orange-deep);
+  background: var(--white); color: var(--orange-text);
   font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; width: 100%;
 }
-.welcome__btn--ghost { background: transparent; color: var(--white); border: 2px solid rgba(255,255,255,0.7); }
-.welcome__note { font-size: 14px; font-weight: 500; color: rgba(255, 255, 255, 0.9); }
+.welcome__btn--ghost { background: transparent; color: var(--white); border: 2px solid rgba(255,255,255,0.85); }
+.welcome__note { font-size: 15px; font-weight: 600; color: #fff; }
