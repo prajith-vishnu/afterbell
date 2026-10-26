@@ -641,9 +641,13 @@ body.is-tour #main { padding-bottom: 0; }
 /* Full-screen orange welcome. */
 .welcome {
   background: var(--orange); color: var(--white);
-  min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end;
+  /* 100% of whatever holds it, not of the viewport, so it also fits inside
+     the film and presentation phone frames instead of overflowing them. */
+  min-height: 100%; box-sizing: border-box;
+  display: flex; flex-direction: column; justify-content: flex-end;
   padding: 32px 20px 40px; gap: 18px;
 }
+body:not(.is-film):not(.is-presentation) .welcome { min-height: 100vh; }
 .welcome .wordmark { color: var(--white); font-size: 40px; }
 .welcome .wordmark__dot { background: var(--white); }
 .welcome p { font-size: 17px; font-weight: 600; color: rgba(255, 255, 255, 0.95); max-width: 30ch; }
@@ -921,3 +925,14 @@ body.is-paused .film__caption::after { content: ' ⏸'; }
   .film__label, .film__screen, .ftoast, .ffinal, .fcard__list li { transition: none; }
   .fchat__bubble--shout, .fchat__dots i { animation: none; }
 }
+
+/* --- Film chat: own messages on the right, and a thread that reads as a
+       phone screen rather than blending into the page behind it. ---------- */
+.fchat__thread { background: var(--white); }
+.fchat__bubble { background: var(--surface); }
+.fchat__run { align-items: flex-start; }
+.fchat__who { margin-top: 18px; }
+.fchat__run--me { justify-content: flex-end; }
+.fchat__run--me .fchat__body { align-items: flex-end; }
+.fchat__run--me .fchat__head { margin: 0 12px 0 0; }
+.fchat__bubble--me { align-self: flex-end; background: var(--orange-tint); }

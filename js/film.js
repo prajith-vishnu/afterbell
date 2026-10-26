@@ -155,6 +155,13 @@ const isShout = (text) => {
   return letters.length >= 4 && letters === letters.toUpperCase();
 };
 
+/**
+ * This is Marcus's phone, so Marcus's own messages sit on the right with no
+ * avatar and no name above them — the way your own messages look in any group
+ * chat. Everyone else is on the left with their name and initial.
+ */
+const ME = 'Marcus';
+
 async function playChat(sceneId, screen, perMessage) {
   const thread = screen.querySelector('.fchat__thread');
   let lastSender = null;
@@ -166,17 +173,21 @@ async function playChat(sceneId, screen, perMessage) {
     if (sender !== lastSender) {
       lastSender = sender;
       run = document.createElement('div');
-      run.className = 'fchat__run';
-      run.innerHTML = `
-        <span class="fchat__who" style="background:${CHAT_PEOPLE[sender] || '#777'}">${esc(sender[0])}</span>
-        <div class="fchat__body">
-          <div class="fchat__head"><span>${esc(sender)}</span><span>${esc(clock)}</span></div>
-        </div>`;
+      run.className = `fchat__run${sender === ME ? ' fchat__run--me' : ''}`;
+      run.innerHTML =
+        sender === ME
+          ? `<div class="fchat__body">
+               <div class="fchat__head"><span>${esc(clock)}</span></div>
+             </div>`
+          : `<span class="fchat__who" style="background:${CHAT_PEOPLE[sender] || '#777'}">${esc(sender[0])}</span>
+             <div class="fchat__body">
+               <div class="fchat__head"><span>${esc(sender)}</span><span>${esc(clock)}</span></div>
+             </div>`;
       thread.appendChild(run);
     }
 
     const bubble = document.createElement('div');
-    bubble.className = 'fchat__bubble fchat__bubble--typing';
+    bubble.className = `fchat__bubble${sender === ME ? ' fchat__bubble--me' : ''} fchat__bubble--typing`;
     bubble.innerHTML = '<span class="fchat__dots"><i></i><i></i><i></i></span>';
     run.querySelector('.fchat__body').appendChild(bubble);
     thread.scrollTop = thread.scrollHeight;

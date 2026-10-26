@@ -75,11 +75,16 @@ body {
 }
 
 /* A "run" is consecutive messages from one person: name and avatar once. */
-.run { display: flex; gap: 9px; align-items: flex-end; }
+/* The avatar sits beside the first message of a run, level with the name,
+   rather than drifting down to the last one. */
+.run { display: flex; gap: 9px; align-items: flex-start; }
+.run--me { justify-content: flex-end; }
+.run--me .run__body { align-items: flex-end; }
+.run--me .run__head { margin: 0 12px 0 0; }
 .run__avatar {
   width: 28px; height: 28px; flex: none; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 11.5px; font-weight: 700; color: #FFFFFF; margin-bottom: 1px;
+  font-size: 11.5px; font-weight: 700; color: #FFFFFF; margin-top: 18px;
 }
 .run__body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .run__head {
@@ -99,6 +104,9 @@ body {
   transition: opacity 180ms ease-out, transform 180ms ease-out;
 }
 .bubble--enter { opacity: 0; transform: translateY(6px) scale(0.98); }
+
+/* Marcus's own messages. */
+.bubble--me { align-self: flex-end; background: #D8D2CB; }
 
 /* Shouting gets a tiny shake. */
 .bubble--shout { font-weight: 600; animation: shake 420ms ease-in-out; }
@@ -334,37 +342,45 @@ async function play(sceneId) {
   }
 }
 
+/* This is Marcus's phone, so his own messages sit on the right with no
+   avatar and no name, the way your own messages look in any group chat. */
+const ME = 'Marcus';
+
 /** Show a typing bubble, starting a new run if the speaker changed. */
 function openBubble(sender, clock) {
   if (sender !== currentSender) {
     currentSender = sender;
+    const mine = sender === ME;
 
     currentRun = document.createElement('div');
-    currentRun.className = 'run';
-
-    const avatar = document.createElement('div');
-    avatar.className = 'run__avatar';
-    avatar.style.background = PEOPLE[sender] || '#777';
-    avatar.textContent = sender[0];
-    avatar.setAttribute('aria-hidden', 'true');
+    currentRun.className = mine ? 'run run--me' : 'run';
 
     const body = document.createElement('div');
     body.className = 'run__body';
 
     const head = document.createElement('div');
     head.className = 'run__head';
-    head.innerHTML =
-      `<span class="run__name"></span><span class="run__time"></span>`;
-    head.querySelector('.run__name').textContent = sender;
+    head.innerHTML = `<span class="run__name"></span><span class="run__time"></span>`;
+    head.querySelector('.run__name').textContent = mine ? '' : sender;
     head.querySelector('.run__time').textContent = clock;
     body.appendChild(head);
 
-    currentRun.append(avatar, body);
+    if (mine) {
+      currentRun.append(body);
+    } else {
+      const avatar = document.createElement('div');
+      avatar.className = 'run__avatar';
+      avatar.style.background = PEOPLE[sender] || '#777';
+      avatar.textContent = sender[0];
+      avatar.setAttribute('aria-hidden', 'true');
+      currentRun.append(avatar, body);
+    }
+
     thread.appendChild(currentRun);
   }
 
   const bubble = document.createElement('div');
-  bubble.className = 'bubble bubble--typing';
+  bubble.className = sender === ME ? 'bubble bubble--me bubble--typing' : 'bubble bubble--typing';
   bubble.innerHTML = '<span class="dots"><i></i><i></i><i></i></span>';
   currentRun.querySelector('.run__body').appendChild(bubble);
 
