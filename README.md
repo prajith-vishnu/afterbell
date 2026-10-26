@@ -359,7 +359,7 @@ no 3D. Orange `#FF6A13`, text in `#1A1A1A`.
 | [`brand/afterbell-mark-white.svg`](brand/afterbell-mark-white.svg) | The symbol in white, for dark surfaces |
 | [`brand/afterbell-cover.jpg`](brand/afterbell-cover.jpg) | Cover image, 600×800 |
 | [`brand/afterbell-cover.svg`](brand/afterbell-cover.svg) | The cover as vector |
-| [`favicon.svg`](favicon.svg) | The mark, as the site icon |
+| [`favicon.svg`](favicon.svg) | The site icon — a bell on an orange tile, kept from before the logo |
 
 The wordmark is Plus Jakarta Sans Bold and the byline is Plus Jakarta Sans
 Medium, both **converted to outline paths** rather than left as `<text>`. That
