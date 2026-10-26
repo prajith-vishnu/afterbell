@@ -145,7 +145,7 @@ export function drawMap(el, state, options = {}) {
   }
 
   // Leaflet measures the container on creation; if it was laid out after
-  // that (a bottom sheet settling, a tour section mounting) it needs a nudge.
+  // that (a bottom sheet settling, a new screen mounting) it needs a nudge.
   setTimeout(() => map.invalidateSize(), 60);
   return map;
 }

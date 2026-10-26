@@ -12,14 +12,8 @@ export const view = {
   /** Which roster group the organizer is highlighting. 'ALL' or a group name. */
   groupFilter: 'ALL',
 
-  /** Secondary view: the original square-per-member roster grid. */
-  showAllSpots: false,
-
   /** The waiting list is capped until the organizer asks to see all of it. */
   showAllGaps: false,
-
-  /** Organizer's alert preference. Sends nothing until accounts exist (Stage 2). */
-  autoAlert: true,
 
   /** Home screen: which kind of event the chips are filtering to. */
   homeFilter: null,

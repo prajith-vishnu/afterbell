@@ -141,9 +141,7 @@ system, so it gets spent last.
 | `js/map.js` | Leaflet setup and the map markers. |
 | `js/export.js` | The ride-plan CSV. |
 | `js/notifications.js` | The Rides tab, built from real app events. |
-| `js/presentation.js` | Presentation mode for the demo video. |
-| `js/tour.js` | Scrolling tour mode. |
-| `chat-scenes.html` | A standalone group-chat prop for the video. |
+| `film.html`, `js/film.js`, `css/film.css` | The demo film, played start to finish for recording. |
 
 ## Running it
 
@@ -160,10 +158,8 @@ Then open **http://localhost:8000**.
 | --- | --- |
 | `/` | The app. Use the demo chips at the top to switch role. |
 | `/?role=organizer` | Opens straight into a role. |
-| `/?demo=1` | Presentation mode. Space advances, ← goes back, R resets, H shows the beat number. |
-| `/?tour=1` | Scrolling tour — each section plays itself as you reach it. |
 | `/tests.html` | The algorithm test suite. |
-| `/chat-scenes.html` | The group-chat video prop. Add `?manual=1` to advance with Space. |
+| `/film.html` | The demo film. Press Start. `?seg=N` previews one segment, `?check=1` self-checks. |
 
 Run the tests from a terminal instead:
 

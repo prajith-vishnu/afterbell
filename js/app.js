@@ -13,9 +13,6 @@ import { esc, icon, notice } from './ui.js';
 import { view } from './view.js';
 import { drawAllMaps } from './map.js';
 import { downloadRidePlan } from './export.js';
-import { isTourMode, startTour } from './tour.js';
-import { isPresentationMode, startPresentation } from './presentation.js';
-import { isFilmMode, startFilmMode } from './film.js';
 
 /* ---------------------------------------------------------------------------
    TABS
@@ -377,23 +374,13 @@ document.addEventListener('change', (event) => {
 /* ---------------------------------------------------------------------------
    BOOT
    `?role=organizer` opens straight into a role, handy when recording.
-   `?tour=1` hands the page over to tour mode instead of the router.
 --------------------------------------------------------------------------- */
 const roleParam = new URLSearchParams(location.search).get('role');
 if (roleParam && S.DEMO_ACCOUNTS[roleParam]) S.setRole(roleParam);
 
-if (isFilmMode()) {
-  // The whole demo video, start to finish, for screen recording.
-  startFilmMode();
-} else if (isPresentationMode()) {
-  // Beat-by-beat walkthrough for recording. Space advances.
-  startPresentation();
-} else if (isTourMode()) {
-  startTour();
-} else {
-  window.addEventListener('hashchange', () => {
-    render();
-    window.scrollTo(0, 0);
-  });
+window.addEventListener('hashchange', () => {
   render();
-}
+  window.scrollTo(0, 0);
+});
+
+render();

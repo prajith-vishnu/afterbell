@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AfterBell — demo film</title>
+  <meta name="description" content="The AfterBell demo film, played start to finish for screen recording." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet, because the real ride and request screens draw real maps. -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- The app's own design system: colours, type, shapes and every component
+       class the real screens use. The film renders the real screens, so it
+       has to load the real stylesheet. -->
+  <link rel="stylesheet" href="./css/app.css" />
+  <link rel="stylesheet" href="./css/film.css" />
+</head>
+<body class="film-body">
+  <div class="film" id="film"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.js"></script>
+  <script type="module" src="./js/film.js"></script>
+</body>
+</html>

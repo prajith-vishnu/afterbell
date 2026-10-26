@@ -156,7 +156,7 @@ function assignControl(row, eventId) {
   </div>`;
 }
 
-/** "Still without a ride" — shared with tour mode. */
+/** "Still without a ride", with the organizer's manual-assign control. */
 export function rosterGapsCard(eventId) {
   const r = S.readinessFor(eventId);
   const missing = r.rows.filter((row) => !S.hasRide(row.status.code));
