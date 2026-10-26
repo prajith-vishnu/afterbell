@@ -122,12 +122,12 @@ a { color: var(--black); text-underline-offset: 3px; }
 /* --------------------------------------------------------------------------
    3. DEMO BAR — the role switcher for the demo.
    -------------------------------------------------------------------------- */
+/* Wraps rather than scrolls sideways: every role and the Reset button have to
+   be visible on a phone without anyone discovering a hidden scroll area. */
 .demobar {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
   padding: 10px 16px; border-bottom: 1px solid var(--line);
-  overflow-x: auto; scrollbar-width: none;
 }
-.demobar::-webkit-scrollbar { display: none; }
 .demobar__label {
   font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--muted); flex: none;
@@ -141,7 +141,7 @@ a { color: var(--black); text-underline-offset: 3px; }
 .rolechip:hover { border-color: var(--black); color: var(--black); }
 .rolechip[aria-selected="true"] { background: var(--black); border-color: var(--black); color: var(--white); }
 /* Reset sits apart from the role chips: it is an action, not a place to be. */
-.rolechip--reset { margin-left: auto; color: var(--orange-text); border-color: var(--orange-tint); background: var(--orange-tint); }
+.rolechip--reset { color: var(--orange-text); border-color: var(--orange-tint); background: var(--orange-tint); }
 .rolechip--reset:hover { border-color: var(--orange-text); color: var(--orange-text); }
 
 /* Both bars are flex, so `hidden` needs saying out loud. */
