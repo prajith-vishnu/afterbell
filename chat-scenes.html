@@ -4,166 +4,149 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Trumpets — chat scenes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
 /* ===========================================================================
    AfterBell — chat-scenes.html
-   A prop for the demo video. Not part of the app: no imports, no shared data.
-   Open it, hit record, press 1 or 2.
+   The two group-chat scenes, on their own, for recording separately.
+   ===========================================================================
+   The same two scenes also play inside film mode as segments 1 and 15. This
+   page exists so they can be shot on their own — bigger, slower, or retaken
+   without re-running the whole film.
 
-   Deliberately a GENERIC phone group chat — grey bubbles, no tails, no blue,
-   no copy of any real messaging app's layout, colours or wordmark.
+   SELF-CONTAINED ON PURPOSE: no imports and no modules, so this one file can
+   be opened by double-clicking it. Everything it needs is below.
 
-   Controls sit OUTSIDE the phone so they crop out. Press H to hide them
-   entirely and drive it from the keyboard.
+   >>> IF YOU EDIT THE MESSAGES, EDIT THEM IN BOTH PLACES <<<
+   The film keeps its own copy in js/film.js under CONFIG.chats, because the
+   film's spec asks for every caption and every timing to live in one config
+   object. Keep the two lists identical or the film and this page will drift.
+
+   It is a GENERIC group chat — no copy of any real messaging app's layout,
+   colours or wordmark. It uses AfterBell's own palette and typeface.
 =========================================================================== */
+
 * { box-sizing: border-box; }
 
 :root {
-  --backdrop: #CFCBC6;
-  --phone: #FFFFFF;
-  --thread: #F7F6F4;
-  --bubble: #E6E3DF;
-  --ink: #15161A;
-  --ink-soft: #6B6761;
-  --line: #E2DFDB;
+  --black: #1A1A1A;
+  --white: #FFFFFF;
+  --peach: #FFF5EF;
+  --surface: #FFF5EF;
+  --line: #F0E6DE;
+  --muted: #8C8C8C;
+  --orange: #FF6A13;
+  --orange-deep: #E85A00;
+  --orange-tint: #FFE9DC;
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 html, body { height: 100%; }
 body {
-  margin: 0; background: var(--backdrop);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  color: var(--ink);
+  margin: 0; background: var(--peach);
+  font-family: var(--font); color: var(--black);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 20px; padding: 24px 16px;
+  gap: 22px; padding: 24px 16px;
 }
 
-/* --- the phone ---------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   THE PHONE — a generic rounded rectangle, not any real device.
+   -------------------------------------------------------------------------- */
 .phone {
-  width: 390px; max-width: 100%;
-  height: min(780px, calc(100vh - 140px));
-  background: var(--phone); border-radius: 28px; overflow: hidden;
+  width: 408px; max-width: 100%;
+  height: min(760px, calc(100vh - 150px));
+  background: var(--white); border-radius: 40px; overflow: hidden;
   display: flex; flex-direction: column;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 24px 60px rgba(26, 26, 26, 0.16);
 }
 
 .bar {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px; border-bottom: 1px solid var(--line); flex: none;
+  display: flex; align-items: center; gap: 12px; flex: none;
+  padding: 16px; border-bottom: 1px solid var(--line);
 }
-.bar__back { width: 26px; height: 26px; flex: none; color: var(--ink-soft); }
 .bar__avatar {
-  width: 38px; height: 38px; flex: none; border-radius: 50%;
-  background: #D9D5D0; color: #4A453F;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; font-weight: 600;
+  width: 40px; height: 40px; border-radius: 50%; flex: none;
+  background: var(--orange-tint); color: var(--orange-deep);
+  display: grid; place-items: center; font-weight: 700;
 }
-.bar__name { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
-.bar__sub { margin: 1px 0 0; font-size: 12px; color: var(--ink-soft); }
+.bar__name { margin: 0; font-size: 17px; font-weight: 700; }
+.bar__sub { margin: 1px 0 0; font-size: 13px; color: var(--muted); }
 
-/* --- the thread --------------------------------------------------------- */
 .thread {
-  flex: 1; overflow-y: auto; background: var(--thread);
-  padding: 16px 14px 20px;
-  display: flex; flex-direction: column; gap: 14px;
-  scrollbar-width: none;
+  flex: 1; overflow-y: auto; padding: 16px 14px 22px;
+  display: flex; flex-direction: column; gap: 14px; scrollbar-width: none;
 }
 .thread::-webkit-scrollbar { display: none; }
-
-.daystamp {
-  align-self: center; font-size: 11.5px; font-weight: 600;
-  color: var(--ink-soft); letter-spacing: 0.02em;
-}
+.day { align-self: center; font-size: 12px; font-weight: 700; color: var(--muted); }
 
 /* A "run" is consecutive messages from one person: name and avatar once. */
-/* The avatar sits beside the first message of a run, level with the name,
-   rather than drifting down to the last one. */
 .run { display: flex; gap: 9px; align-items: flex-start; }
 .run--me { justify-content: flex-end; }
 .run--me .run__body { align-items: flex-end; }
 .run--me .run__head { margin: 0 12px 0 0; }
-.run__avatar {
-  width: 28px; height: 28px; flex: none; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11.5px; font-weight: 700; color: #FFFFFF; margin-top: 18px;
+.run__who {
+  width: 30px; height: 30px; border-radius: 50%; flex: none; color: #fff;
+  display: grid; place-items: center; font-size: 12px; font-weight: 700;
+  /* Level with the name above the first bubble, not the last one. */
+  margin-top: 20px;
 }
-.run__body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.run__body { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .run__head {
-  display: flex; align-items: baseline; gap: 8px; margin-left: 12px;
-  font-size: 11.5px; color: var(--ink-soft);
+  display: flex; gap: 8px; align-items: baseline; margin-left: 12px;
+  font-size: 12px; color: var(--muted);
 }
-.run__name { font-weight: 600; }
-.run__time { font-size: 11px; }
+.run__head span:first-child { font-weight: 700; }
 
 .bubble {
-  align-self: flex-start; max-width: 252px;
-  background: var(--bubble); color: var(--ink);
-  border-radius: 18px; padding: 9px 13px;
-  font-size: 15px; line-height: 1.35; overflow-wrap: break-word;
-  /* The entrance is a class we take away, so the resting state is "visible".
-     A keyframe starting at opacity 0 can get stuck there if it never runs. */
-  transition: opacity 180ms ease-out, transform 180ms ease-out;
+  align-self: flex-start; max-width: 272px;
+  background: var(--surface); border-radius: 20px; padding: 10px 14px;
+  font-size: 16px; line-height: 1.35; overflow-wrap: break-word;
 }
-.bubble--enter { opacity: 0; transform: translateY(6px) scale(0.98); }
+/* Marcus's own messages, because this is Marcus's phone. */
+.bubble--me { align-self: flex-end; background: var(--orange-tint); }
 
-/* Marcus's own messages. */
-.bubble--me { align-self: flex-end; background: #D8D2CB; }
-
-/* Shouting gets a tiny shake. */
-.bubble--shout { font-weight: 600; animation: shake 420ms ease-in-out; }
+/* Shouting gets a small shake. */
+.bubble--shout { font-weight: 700; animation: shake 420ms ease-in-out; }
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  15% { transform: translateX(-3px); }
-  30% { transform: translateX(3px); }
-  45% { transform: translateX(-2px); }
-  60% { transform: translateX(2px); }
-  80% { transform: translateX(-1px); }
+  15% { transform: translateX(-3px); } 30% { transform: translateX(3px); }
+  45% { transform: translateX(-2px); } 60% { transform: translateX(2px); }
 }
 
 /* Typing indicator, which then becomes the message. */
-.bubble--typing { padding: 12px 14px; }
+.bubble--typing { padding: 13px 15px; }
 .dots { display: inline-flex; gap: 4px; align-items: center; }
 .dots i {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: #A8A49E; animation: blink 1.1s infinite ease-in-out;
+  width: 7px; height: 7px; border-radius: 50%; background: #C9BFB7;
+  animation: blink 1.1s infinite ease-in-out;
 }
-.dots i:nth-child(2) { animation-delay: 0.18s; }
-.dots i:nth-child(3) { animation-delay: 0.36s; }
+.dots i:nth-child(2) { animation-delay: .18s; }
+.dots i:nth-child(3) { animation-delay: .36s; }
 @keyframes blink {
-  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+  0%, 60%, 100% { opacity: .35; transform: translateY(0); }
   30% { opacity: 1; transform: translateY(-3px); }
 }
 
-/* Decorative composer so the screen does not look cut off. */
-.composer {
-  flex: none; display: flex; align-items: center; gap: 10px;
-  padding: 12px 14px 16px; border-top: 1px solid var(--line);
-}
-.composer__field {
-  flex: 1; border: 1px solid var(--line); border-radius: 999px;
-  padding: 10px 16px; font-size: 14px; color: #A8A49E;
-}
-.composer__send {
-  width: 34px; height: 34px; flex: none; border-radius: 50%;
-  background: #D9D5D0; color: #6B6761;
-  display: flex; align-items: center; justify-content: center;
-}
-
-/* --- controls, outside the phone ---------------------------------------- */
+/* --------------------------------------------------------------------------
+   CONTROLS — outside the phone, so they crop out. H hides them entirely.
+   -------------------------------------------------------------------------- */
 .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; }
 .controls[hidden] { display: none; }
 .btn {
-  font: inherit; font-size: 13.5px; font-weight: 600;
-  min-height: 40px; padding: 0 16px; border-radius: 999px;
-  border: 1px solid #B4AFA9; background: #F0EEEB; color: var(--ink); cursor: pointer;
+  font: inherit; font-size: 14px; font-weight: 600;
+  min-height: 44px; padding: 0 18px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--white); color: var(--black); cursor: pointer;
 }
-.btn:hover { background: #FFFFFF; }
-.btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #FFFFFF; }
-.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.hint { width: 100%; text-align: center; font-size: 12px; color: #6B6761; margin: 2px 0 0; }
+.btn:hover { border-color: var(--orange); }
+.btn[aria-pressed="true"] { background: var(--orange); border-color: var(--orange); color: #fff; }
+.btn:focus-visible { outline: 2px solid var(--orange-deep); outline-offset: 2px; }
+.hint { width: 100%; text-align: center; font-size: 13px; color: var(--muted); margin: 2px 0 0; }
 
 @media (prefers-reduced-motion: reduce) {
   .bubble, .bubble--shout { transition: none; animation: none; }
-  .dots i { animation: none; opacity: 0.6; }
+  .dots i { animation: none; opacity: .6; }
 }
 </style>
 </head>
@@ -171,127 +154,101 @@ body {
 
   <div class="phone">
     <header class="bar">
-      <svg class="bar__back" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M15 18l-6-6 6-6" />
-      </svg>
-      <div class="bar__avatar" aria-hidden="true">T</div>
+      <span class="bar__avatar" aria-hidden="true">T</span>
       <div>
         <h1 class="bar__name">Trumpets 🎺 (8)</h1>
         <p class="bar__sub">8 members</p>
       </div>
     </header>
-
     <div class="thread" id="thread" role="log" aria-live="polite" aria-label="Group chat"></div>
-
-    <div class="composer" aria-hidden="true">
-      <div class="composer__field">Message</div>
-      <div class="composer__send">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 19V5M5 12l7-7 7 7" />
-        </svg>
-      </div>
-    </div>
   </div>
 
   <div class="controls" id="controls">
-    <button class="btn" data-scene="1" aria-pressed="false">Scene 1 — the hole in the form</button>
-    <button class="btn" data-scene="2" aria-pressed="false">Scene 2 — spot 14 is back</button>
+    <button class="btn" data-scene="1" aria-pressed="false">Scene 1 — before</button>
+    <button class="btn" data-scene="2" aria-pressed="false">Scene 2 — after</button>
     <button class="btn" id="replay">Replay</button>
     <button class="btn" id="hide">Hide controls</button>
-    <p class="hint">Keys: <strong>1</strong> and <strong>2</strong> play a scene ·
-      <strong>R</strong> replays · <strong>H</strong> hides these buttons</p>
+    <p class="hint"><strong>1</strong> and <strong>2</strong> play a scene ·
+      <strong>R</strong> replays · <strong>H</strong> hides these ·
+      add <strong>?manual=1</strong> to the URL to advance with Space</p>
   </div>
 
 <script>
 /* ===========================================================================
-   THE SCRIPT
-   [sender, text, clock]. Consecutive messages from one person group into a
-   run, so the name and time show once per run, the way a real chat does.
+   THE SCENES
+   These must stay identical to CONFIG.chats in js/film.js.
+   [sender, text, clock]
 =========================================================================== */
 const SCENES = {
-  1: {
-    stamp: 'Today',
-    messages: [
-      ['Maya',   'bus gets back to braswell at 11:30 tonight', '4:12 PM'],
-      ['Maya',   'everyone have a ride home?? reply here', '4:12 PM'],
-      ['Chris',  'my dad\u2019s getting me', '4:13 PM'],
-      ['Dev',    'yep 🎺', '4:13 PM'],
-      ['Maya',   '…marcus?', '4:14 PM', { before: 1200 }],
-      ['Maya',   'marcus', '4:15 PM'],
-      ['Marcus', 'my mom works nights 😭', '4:16 PM', { after: 1000 }],
-      ['Marcus', 'i might have to skip area', '4:16 PM'],
-      ['Maya',   'MARCUS YOU CANNOT SKIP AREA', '4:17 PM'],
-      ['Dev',    'spot 14 would literally just be empty', '4:17 PM'],
-      ['Ari',    'my mom\u2019s car is already full 😭', '4:18 PM'],
-      ['Maya',   'WHO IS DRIVING MARCUS', '4:18 PM', { before: 1500 }],
-      ['Dev',    'bro just get AfterBell', '4:19 PM'],
-      ['Dev',    'my neighbor drives band kids on it all the time', '4:19 PM'],
-      ['Marcus', 'getting it rn', '4:20 PM'],
-    ],
-  },
-  2: {
-    stamp: 'Today',
-    messages: [
-      ['Marcus', 'made it home 🏠', '11:52 PM'],
-      ['Marcus', 'got a ride with dev\u2019s neighbor lol', '11:52 PM'],
-      ['Dev',    'told you 😎', '11:53 PM'],
-      ['Maya',   'MARCUS!!!', '11:53 PM', { before: 1500 }],
-      ['Chris',  'spot 14 stays FILLED 🙏', '11:54 PM'],
-      ['Maya',   'ok everyone sleep. great run today', '11:55 PM'],
-    ],
-  },
+  1: [
+    ['Maya',   'bus gets back to braswell at 11:30 tonight', '4:12 PM'],
+    ['Maya',   'everyone have a ride home?? reply here', '4:12 PM'],
+    ['Maya',   '…marcus?', '4:14 PM'],
+    ['Marcus', 'my mom works nights 😭', '4:16 PM'],
+    ['Marcus', 'i might have to skip area', '4:16 PM'],
+    ['Maya',   'MARCUS YOU CANNOT SKIP AREA', '4:17 PM'],
+    ['Dev',    'spot 14 would literally just be empty', '4:17 PM'],
+    ['Ari',    'my mom’s car is already full 😭', '4:18 PM'],
+    ['Maya',   'WHO IS DRIVING MARCUS', '4:18 PM'],
+    ['Dev',    'bro just get AfterBell', '4:19 PM'],
+    ['Dev',    'my neighbor drives band kids on it all the time', '4:19 PM'],
+    ['Marcus', 'getting it rn', '4:20 PM'],
+  ],
+  2: [
+    ['Marcus', 'made it home 🏠', '11:52 PM'],
+    ['Marcus', 'got a ride with dev’s neighbor lol', '11:52 PM'],
+    ['Dev',    'told you 😎', '11:53 PM'],
+    ['Maya',   'MARCUS!!!', '11:53 PM'],
+    ['Chris',  'spot 14 stays FILLED 🙏', '11:54 PM'],
+  ],
 };
+
+/* Pacing. Matches the film; change it here to retime this page on its own. */
+const GAP_MS = 1200;          // between messages
+const TYPE_BASE_MS = 500;     // typing indicator, plus per character
+const TYPE_PER_CHAR_MS = 20;
+const TYPE_MAX_MS = 1500;
 
 /* Muted, non-branded avatar colours, one per person. */
 const PEOPLE = {
-  Maya:   '#8A6F63',
-  Chris:  '#5E6B72',
-  Dev:    '#6E6480',
-  Ari:    '#6B7A5E',
-  Marcus: '#8A6356',
+  Maya: '#C2410C', Chris: '#5E6B72', Dev: '#6E6480', Ari: '#6B7A5E', Marcus: '#8A6356',
 };
 
-/* Pacing, all in one place so it is easy to retime for a recording. */
-const BASE_GAP_MS = 1600;            // between messages
-const TYPING_BASE_MS = 600;          // before a message appears
-const TYPING_PER_CHAR_MS = 30;
-const TYPING_MAX_MS = 2000;
+/* This is Marcus's phone, so his own messages sit on the right with no name
+   and no avatar, the way your own messages look in any group chat. */
+const ME = 'Marcus';
 
-/* ?manual=1 — nothing plays on its own; Space reveals the next message.
-   Useful when the voiceover needs to land before the next line does. */
+/* ?manual=1 — nothing plays on its own; Space reveals the next message. */
 const MANUAL = new URLSearchParams(location.search).get('manual') === '1';
 
-const thread   = document.getElementById('thread');
+const thread = document.getElementById('thread');
 const controls = document.getElementById('controls');
 if (MANUAL) controls.hidden = true;
-
-/* In manual mode each message waits here until Space is pressed. */
-let releaseStep = null;
-function waitForSpace() {
-  return new Promise((resolve) => { releaseStep = resolve; });
-}
 
 let runToken = 0;
 let currentScene = null;
 let currentRun = null;
 let currentSender = null;
+let releaseStep = null;
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const waitForSpace = () => new Promise((resolve) => { releaseStep = resolve; });
 
-/** Shouting: four or more letters and no lowercase among them. */
+const typingMsFor = (text) =>
+  Math.min(TYPE_MAX_MS, TYPE_BASE_MS + text.length * TYPE_PER_CHAR_MS);
+
+/** Shouting: four or more letters, none of them lowercase. */
 function isShout(text) {
   const letters = text.replace(/[^A-Za-z]/g, '');
   return letters.length >= 4 && letters === letters.toUpperCase();
 }
 
 async function play(sceneId) {
-  const scene = SCENES[sceneId];
-  if (!scene) return;
+  const messages = SCENES[sceneId];
+  if (!messages) return;
 
-  const token = ++runToken;     // anything still running stops here
-  releaseStep = null;           // drop any gate left over from the last scene
+  const token = ++runToken;   // anything still running stops here
+  releaseStep = null;         // drop a gate left over from the last scene
   currentScene = sceneId;
   currentRun = null;
   currentSender = null;
@@ -301,56 +258,41 @@ async function play(sceneId) {
     button.setAttribute('aria-pressed', String(button.dataset.scene === String(sceneId)));
   }
 
-  const stamp = document.createElement('div');
-  stamp.className = 'daystamp';
-  stamp.textContent = scene.stamp;
-  thread.appendChild(stamp);
+  const day = document.createElement('div');
+  day.className = 'day';
+  day.textContent = 'Today';
+  thread.appendChild(day);
 
-  await wait(450);
-  if (token !== runToken) return;
+  if (!MANUAL) {
+    await wait(450);
+    if (token !== runToken) return;
+  }
 
-  for (const [sender, text, clock, opts = {}] of scene.messages) {
-    // A longer message takes longer to type, up to a ceiling.
-    const typingMs = Math.min(TYPING_MAX_MS, TYPING_BASE_MS + text.length * TYPING_PER_CHAR_MS);
-
+  for (const [sender, text, clock] of messages) {
     if (MANUAL) {
-      // Wait for Space, then type and show. The pauses in the table are a
-      // pacing aid for autoplay; here the pacing is in your hands.
       await waitForSpace();
-      if (token !== runToken) return;
-
-      const bubble = openBubble(sender, clock);
-      await wait(typingMs);
-      if (token !== runToken) return;
-      fillBubble(bubble, text);
-      continue;
-    }
-
-    if (opts.before) {
-      await wait(opts.before);
       if (token !== runToken) return;
     }
 
     const bubble = openBubble(sender, clock);
-    await wait(typingMs);
+    await wait(typingMsFor(text));
     if (token !== runToken) return;
 
     fillBubble(bubble, text);
 
-    await wait(BASE_GAP_MS + (opts.after || 0));
-    if (token !== runToken) return;
+    if (!MANUAL) {
+      await wait(GAP_MS);
+      if (token !== runToken) return;
+    }
   }
 }
 
-/* This is Marcus's phone, so his own messages sit on the right with no
-   avatar and no name, the way your own messages look in any group chat. */
-const ME = 'Marcus';
-
 /** Show a typing bubble, starting a new run if the speaker changed. */
 function openBubble(sender, clock) {
+  const mine = sender === ME;
+
   if (sender !== currentSender) {
     currentSender = sender;
-    const mine = sender === ME;
 
     currentRun = document.createElement('div');
     currentRun.className = mine ? 'run run--me' : 'run';
@@ -360,48 +302,41 @@ function openBubble(sender, clock) {
 
     const head = document.createElement('div');
     head.className = 'run__head';
-    head.innerHTML = `<span class="run__name"></span><span class="run__time"></span>`;
-    head.querySelector('.run__name').textContent = mine ? '' : sender;
-    head.querySelector('.run__time').textContent = clock;
+    head.innerHTML = '<span></span><span></span>';
+    head.children[0].textContent = mine ? '' : sender;
+    head.children[1].textContent = clock;
     body.appendChild(head);
 
     if (mine) {
       currentRun.append(body);
     } else {
-      const avatar = document.createElement('div');
-      avatar.className = 'run__avatar';
-      avatar.style.background = PEOPLE[sender] || '#777';
-      avatar.textContent = sender[0];
-      avatar.setAttribute('aria-hidden', 'true');
-      currentRun.append(avatar, body);
+      const who = document.createElement('div');
+      who.className = 'run__who';
+      who.style.background = PEOPLE[sender] || '#777';
+      who.textContent = sender[0];
+      who.setAttribute('aria-hidden', 'true');
+      currentRun.append(who, body);
     }
 
     thread.appendChild(currentRun);
   }
 
   const bubble = document.createElement('div');
-  bubble.className = sender === ME ? 'bubble bubble--me bubble--typing' : 'bubble bubble--typing';
+  bubble.className = mine ? 'bubble bubble--me bubble--typing' : 'bubble bubble--typing';
   bubble.innerHTML = '<span class="dots"><i></i><i></i><i></i></span>';
   currentRun.querySelector('.run__body').appendChild(bubble);
 
-  scrollToEnd();
+  thread.scrollTop = thread.scrollHeight;
   return bubble;
 }
 
 /** The typing bubble becomes the message. */
 function fillBubble(bubble, text) {
   bubble.classList.remove('bubble--typing');
-  bubble.classList.add('bubble--enter');
   bubble.textContent = text;
   if (isShout(text)) bubble.classList.add('bubble--shout');
-
-  // A timer rather than requestAnimationFrame: rAF gets throttled in a
-  // background or recorded tab, and the bubble would never appear.
-  setTimeout(() => bubble.classList.remove('bubble--enter'), 20);
-  scrollToEnd();
+  thread.scrollTop = thread.scrollHeight;
 }
-
-function scrollToEnd() { thread.scrollTop = thread.scrollHeight; }
 
 controls.addEventListener('click', (event) => {
   const button = event.target.closest('button');
@@ -411,8 +346,8 @@ controls.addEventListener('click', (event) => {
   if (button.id === 'hide') controls.hidden = true;
 });
 
-// In manual mode the scene is armed on load, so the very first Space shows
-// the first message rather than only starting the scene.
+// In manual mode the scene is armed on load, so the first Space shows the
+// first message rather than only starting the scene.
 if (MANUAL) play(1);
 
 document.addEventListener('keydown', (event) => {
