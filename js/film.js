@@ -6,12 +6,13 @@
    recorded with a live voiceover. It records nothing and plays no audio.
 
    HOW IT STAYS HONEST
-   The REAL matching algorithm runs exactly once, at the moment the film
-   starts, on Saturday's ride home and on Tuesday's trip. Every number, name,
-   car and time in the captions is read out of that one real run. Every
-   segment then restores a saved snapshot of the data and renders a REAL
-   screen from screens.js, so no segment depends on what the segment before
-   it happened to leave on the page.
+   The REAL matching algorithm runs exactly once, when the film starts, on
+   Saturday morning's trip — the band's 6:05 rehearsal pickup and the
+   volleyball team's 6:00 practice pickup, which land in the same 15-minute
+   bucket. Every number, name, car and time in the captions is read out of
+   that one run. Each segment then restores a saved snapshot and renders a
+   REAL screen from screens.js, so no segment depends on what the segment
+   before it left on the page.
 
    OTHER MODES
      ?film=1&seg=N    preview one segment on its own
@@ -34,44 +35,45 @@ export function isFilmMode() {
 }
 
 /* ===========================================================================
-   CONFIG — every duration, every caption, every bit of pacing, in one place.
+   CONFIG — every duration, caption and bit of pacing, in one place.
 =========================================================================== */
 const CONFIG = {
   /* >>> FILL THESE IN <<< the only two words not read from the data. */
   presenterName: '[NAME]',
   presenterGrade: '[GRADE]',
 
-  blankStartMs: 2000,   // trimmable run-in
-  holdLastMs: 3000,     // hold on the final frame
+  blankStartMs: 2000,
+  holdLastMs: 3000,
   transitionMs: 250,
   tapPulseMs: 620,
-  maxRuntimeMs: 178000, // 2:58 hard cap, checked by the self-check
+  maxRuntimeMs: 178000,          // 2:58 hard cap, enforced by the self-check
 
-  // The stage is laid out at this logical size and scaled to fit any screen.
   stage: { width: 1240, height: 880 },
 
   chat: {
-    gapMs: 1200,         // between messages
+    // The brief asks for about 1.3s between messages; at that pace the film
+    // runs to 3:03. The gap is the first thing to shorten when it is over
+    // the cap, so it sits just under a second and the film lands at 2:57.
+    gapMs: 950,
     typeBaseMs: 500,
     typePerCharMs: 20,
     typeMaxMs: 1500,
   },
 
-  // Who the label above the phone names.
   people: {
     marcus: { id: 's19', role: 'Trumpets' },
-    lisa: { id: 'p07', role: "Parent driver · Dev's neighbor" },
+    lisa: { id: 'p07', role: "Volleyball parent · Dev's neighbor" },
     moreno: { id: 'o-moreno', role: 'Band director' },
   },
 
-  // seconds + caption for every segment. Chat segments time themselves.
   segments: {
     chat1: { seconds: null, person: 'marcus', caption: null },
     hook: {
-      seconds: 11, person: 'marcus',
+      seconds: 12, person: 'marcus',
       caption: (f) =>
-        `That's ${f.marcusFirst}. Without a ride home from tonight's contest, he'd have to ` +
-        `skip it, and in marching band, one empty spot leaves a hole in the whole show.`,
+        `That's ${f.marcusFirst}. It's the morning of the biggest contest of the year, and ` +
+        `without a ride to rehearsal, he can't march. In marching band, one empty spot ` +
+        `leaves a hole in the whole show.`,
     },
     title: {
       seconds: 16, person: null,
@@ -90,33 +92,38 @@ const CONFIG = {
     request: {
       seconds: 8, person: 'marcus',
       caption: () =>
-        `He requests a ride home from Saturday's contest. While he waits, here's what's ` +
-        `happening behind the scenes.`,
+        `He requests a ride to the 6:30 rehearsal. While he waits, here's what's happening ` +
+        `behind the scenes.`,
     },
     behind: { seconds: 2, person: null, caption: null },
     lisa: {
-      seconds: 5, person: 'lisa',
-      caption: (f) => `Dev's next-door neighbor, Lisa, offers ${f.lisaSeats} seats for tonight.`,
+      seconds: 9, person: 'lisa',
+      caption: (f) =>
+        `Lisa, Dev's next-door neighbor, is already driving her daughter Jada to volleyball ` +
+        `practice at the same time, and she has ` +
+        `${f.lisaSeats === 1 ? 'one open seat' : `${f.lisaSeats} open seats`}.`,
     },
     fill: {
-      seconds: 17, person: 'moreno',
+      seconds: 18, person: 'moreno',
       caption: (f) =>
-        `On the director's screen, ${f.total} students need a ride home tonight, and ` +
-        `${f.before} have one. He taps Fill the Gaps. AfterBell's algorithm groups students ` +
-        `by where and when they're going, clusters them by neighborhood, and assigns parent ` +
-        `drivers while checking seats and distance.`,
+        `On the band director's screen, ${f.total} marchers need a ride this morning, and ` +
+        `${f.before} have one. He taps Fill the Gaps. AfterBell's algorithm looks at every ` +
+        `activity, not just band. It groups everyone heading to the same place at the same ` +
+        `time, clusters them by neighborhood, and assigns parent drivers while checking ` +
+        `seats and distance.`,
     },
     gaps: {
       seconds: 10, person: 'moreno',
       caption: (f) =>
-        `${f.unmatchedCount} students couldn't be matched, and AfterBell explains why: ` +
+        `${f.unmatchedCount} couldn't be matched, and AfterBell explains why: ` +
         `${f.shortReason}. So the director assigns them to ${f.chaperoneName}.`,
     },
     confirmed: {
-      seconds: 7, person: 'marcus',
+      seconds: 11, person: 'marcus',
       caption: (f) =>
-        `Back on ${f.marcusFirst}'s phone, his ride is confirmed with ${f.lisaFirst}, ` +
-        `Dev's next-door neighbor.`,
+        `Back on ${f.marcusFirst}'s phone, his ride is confirmed: ${f.lisaFirst} and Jada, ` +
+        `on their way to volleyball. A band kid and a volleyball player. Different ` +
+        `activities, same neighborhood, same time.`,
     },
     handoff: {
       seconds: 10, person: 'marcus',
@@ -124,25 +131,19 @@ const CONFIG = {
         `At pickup, they see the same code, so he never gets in the wrong car, and his mom ` +
         `is notified the moment he's picked up.`,
     },
-    cross: {
-      seconds: 10, person: null,
-      caption: (f) =>
-        `And it's not just band. On Tuesday, ${f.tuesdayDriver}'s car takes home a volleyball ` +
-        `player, a theater student, and a cross country runner.`,
-    },
     code: {
       seconds: 12, person: null,
       caption: () =>
-        `It's built with HTML, CSS, and JavaScript. The algorithm groups requests by time and ` +
-        `place, measures distance between neighborhoods with the haversine formula, and fills ` +
-        `seats closest-first within three miles.`,
+        `It's built with HTML, CSS, and JavaScript. The algorithm groups requests by time ` +
+        `and place, measures distance between neighborhoods with the haversine formula, and ` +
+        `fills seats closest-first within three miles.`,
     },
     rules: {
       seconds: 12, person: null,
       caption: () =>
-        `Only parent-approved adults can drive, and AfterBell stores neighborhoods, never home ` +
-        `addresses. Building this taught me that the hardest part of an app isn't the code. ` +
-        `It's the rules real people live by.`,
+        `Only parent-approved adults can drive, and AfterBell stores neighborhoods, never ` +
+        `home addresses. Building this taught me that the hardest part of an app isn't the ` +
+        `code. It's the rules real people live by.`,
     },
     chat2: { seconds: null, person: 'marcus', caption: null },
     final: {
@@ -155,48 +156,49 @@ const CONFIG = {
 
   chats: {
     chat1: [
-      ['Maya', 'bus gets back to braswell at 11:30 tonight', '4:12 PM'],
-      ['Maya', 'everyone have a ride home?? reply here', '4:12 PM'],
-      ['Maya', '…marcus?', '4:14 PM'],
-      ['Marcus', 'my mom works nights 😭', '4:16 PM'],
-      ['Marcus', 'i might have to skip area', '4:16 PM'],
-      ['Maya', 'MARCUS YOU CANNOT SKIP AREA', '4:17 PM'],
-      ['Dev', 'spot 14 would literally just be empty', '4:17 PM'],
-      ['Ari', 'my mom’s car is already full 😭', '4:18 PM'],
-      ['Maya', 'WHO IS DRIVING MARCUS', '4:18 PM'],
-      ['Dev', 'bro just get AfterBell', '4:19 PM'],
-      ['Dev', 'my neighbor drives band kids on it all the time', '4:19 PM'],
-      ['Marcus', 'getting it rn', '4:20 PM'],
+      ['Maya', 'area rehearsal at 6:30, bus to the contest leaves at 9', '5:48 AM'],
+      ['Maya', 'everyone up?? reply here', '5:48 AM'],
+      ['Chris', 'here 😴', '5:49 AM'],
+      ['Maya', '…marcus?', '5:51 AM'],
+      ['Marcus', 'i’m up but i don’t have a ride 😭', '5:52 AM'],
+      ['Marcus', 'my mom left for work at 5', '5:52 AM'],
+      ['Maya', 'MARCUS IT’S AREA', '5:53 AM'],
+      ['Dev', 'spot 14 can’t be empty at area bro', '5:53 AM'],
+      ['Ari', 'my mom’s car is already full 😭', '5:54 AM'],
+      ['Maya', 'WHO IS DRIVING MARCUS', '5:54 AM'],
+      ['Dev', 'bro just get AfterBell', '5:55 AM'],
+      ['Dev', 'my neighbor takes her daughter to volleyball at 6:30 and she drives people on it', '5:55 AM'],
+      ['Marcus', 'getting it rn', '5:56 AM'],
     ],
     chat2: [
-      ['Marcus', 'made it home 🏠', '11:52 PM'],
-      ['Marcus', 'got a ride with dev’s neighbor lol', '11:52 PM'],
-      ['Dev', 'told you 😎', '11:53 PM'],
-      ['Maya', 'MARCUS!!!', '11:53 PM'],
-      ['Chris', 'spot 14 stays FILLED 🙏', '11:54 PM'],
+      ['Marcus', 'HERE 🏃', '6:27 AM'],
+      ['Marcus', 'got a ride with dev’s neighbor and her daughter from volleyball lol', '6:27 AM'],
+      ['Dev', 'told you 😎', '6:28 AM'],
+      ['Maya', 'MARCUS!!!', '6:28 AM'],
+      ['Chris', 'spot 14 is FILLED 🙏', '6:29 AM'],
+      ['Maya', 'ok everyone on the field', '6:29 AM'],
     ],
   },
 };
 
-/* The order the film plays in. */
-const ORDER = [
+/* The order the film plays in. `gaps` drops out if the real run leaves
+   nobody behind. */
+const BASE_ORDER = [
   'chat1', 'hook', 'title', 'join', 'request', 'behind', 'lisa', 'fill',
-  'gaps', 'confirmed', 'handoff', 'cross', 'code', 'rules', 'chat2', 'final',
+  'gaps', 'confirmed', 'handoff', 'code', 'rules', 'chat2', 'final',
 ];
+let ORDER = [...BASE_ORDER];
 
 const MARCUS = 's19';
+const JADA = 's61';
 const LISA = 'p07';
 const ANGELA = 'p12';
 const CHAPERONE = 'c-rivera';
-const SATURDAY = 'e-band-sat';
-const TUESDAY = 'e-vball-tue';
+const BAND_AM = 'e-band-sat-am';
+const VBALL_AM = 'e-vball-sat-am';
 
 /* ===========================================================================
-   STEP 1 — RUN THE REAL ALGORITHM ONCE, AND SAVE WHAT IT DID
-   ===========================================================================
-   Snapshots are plain deep copies of the app's data. A segment restores the
-   one it needs, so segments are independent and can be previewed or checked
-   in any order.
+   RUN THE REAL ALGORITHM ONCE, AND SAVE WHAT IT DID
 =========================================================================== */
 const snaps = {};
 const facts = {};
@@ -227,56 +229,61 @@ function computeResults() {
   view.assignOpenFor = null;
   view.homeFilter = null;
 
-  // Scene setup, done with the data rather than with a fake screen: at the
-  // top of the film Marcus has not joined and has not asked for a ride.
-  S.cancelRequest(MARCUS, SATURDAY);
+  // Scene setup, done with the data rather than a fake screen: at the top of
+  // the film Marcus has not joined and has not asked for a ride.
+  S.cancelRequest(MARCUS, BAND_AM);
   S.personById(MARCUS).approved = false;
   snaps.start = snapshot();
 
-  // Lisa's "offer seats" card points at the soonest trip her students have.
-  // The film is set on Saturday, so for her segment the week before it has
-  // already happened. Her seat count and her car are untouched.
-  const saturdayTime = S.eventById(SATURDAY).rideTimeISO;
-  S.state.data.events = S.state.data.events.filter((e) => e.rideTimeISO >= saturdayTime);
+  // ---- Lisa's two frames ------------------------------------------------
+  // Her card shows the soonest trip her students have. The film is set on
+  // Saturday morning, so the week before it has already happened.
+  const dawn = S.eventById(VBALL_AM).rideTimeISO;
+  S.state.data.events = S.state.data.events.filter((e) => e.rideTimeISO >= dawn);
+  const offer = S.offerById(`of-${VBALL_AM}-${LISA}`);
+  const realSeats = offer.seats;
+  offer.seats = 1;                    // just Jada, nothing spare yet
   snaps.lisaBefore = snapshot();
-  const lisaOffer = S.offerById(`of-${SATURDAY}-${LISA}`) || S.offerById('of-sat-p07');
-  facts.lisaSeats = lisaOffer ? lisaOffer.seats : 3;
-  S.offerSeats(LISA, SATURDAY, facts.lisaSeats);
+  offer.seats = realSeats;            // she opens the spare seat
   snaps.lisaAfter = snapshot();
+  facts.lisaTotalSeats = realSeats;
+  facts.lisaSeats = realSeats - 1;    // the spare, which is what Marcus takes
 
-  // Back to the full week for everything else.
+  // ---- back to the whole week ------------------------------------------
   S.state.data = copy(snaps.start);
 
   S.approveStudent(MARCUS);
   snaps.approved = snapshot();
 
-  S.requestRide(MARCUS, SATURDAY);
+  S.requestRide(MARCUS, BAND_AM);
   snaps.requested = snapshot();
 
-  const before = S.readinessFor(SATURDAY);
+  const before = S.readinessFor(BAND_AM);
   facts.total = before.total;
   facts.before = before.covered;
   snaps.preFill = snapshot();
 
-  // ---- the real algorithm, run once ----
-  const run = S.runFillTheGaps(SATURDAY);
-  S.runFillTheGaps(TUESDAY);
+  // ---------- the real algorithm, run once ----------
+  const run = S.runFillTheGaps(BAND_AM);
   facts.matchedOrder = [...run.matchedStudentIds];
+  facts.crossActivityCount = run.crossActivityCount;
   snaps.filled = snapshot();
-  facts.after = S.readinessFor(SATURDAY).covered;
+  facts.after = S.readinessFor(BAND_AM).covered;
 
-  const leftover = S.readinessFor(SATURDAY)
-    .rows.filter((row) => !S.hasRide(row.status.code));
+  const leftover = S.readinessFor(BAND_AM).rows.filter((row) => !S.hasRide(row.status.code));
   facts.unmatchedCount = leftover.length;
   facts.unmatchedNames = leftover.map((row) => personName(row.person));
   facts.shortReason = shortReasonFor(leftover);
   facts.assignedOrder = leftover.map((row) => row.studentId);
 
-  for (const id of facts.assignedOrder) S.assignManually(id, SATURDAY, CHAPERONE);
-  snaps.assigned = snapshot();
-  facts.final = S.readinessFor(SATURDAY).covered;
+  // No one left behind means no segment about it.
+  ORDER = facts.unmatchedCount ? [...BASE_ORDER] : BASE_ORDER.filter((k) => k !== 'gaps');
 
-  // Marcus's car, and the handoff code both phones show.
+  for (const id of facts.assignedOrder) S.assignManually(id, BAND_AM, CHAPERONE);
+  snaps.assigned = snapshot();
+  facts.final = S.readinessFor(BAND_AM).covered;
+
+  // Marcus's car: the one a volleyball parent offered.
   const ride = S.state.data.rides.find((r) => r.riderIds.includes(MARCUS));
   const driver = S.personById(ride.driverId);
   facts.rideId = ride.id;
@@ -285,30 +292,22 @@ function computeResults() {
   facts.car = [driver.carColor, driver.carModel].filter(Boolean).join(' ');
   facts.pickupTime = formatTime(S.offerById(ride.offerId).timeISO);
   facts.code = S.handoffCode(ride.id);
+  facts.riderActivities = [...new Set(S.ridersInRide(ride).map((r) => r.activityLabel))];
 
   S.markPickedUp(facts.rideId, true);
   facts.pickedUpAt = S.rideById(facts.rideId).pickedUpAt;
   snaps.pickedUp = snapshot();
 
-  // Tuesday's car, the one carrying more than one activity.
-  S.state.data = copy(snaps.assigned);
-  const mixed = S.state.data.rides
-    .map((r) => ({ r, n: new Set(S.ridersInRide(r).map((x) => x.activityId)).size }))
-    .filter((e) => e.n > 1)
-    .sort((a, b) => b.n - a.n)[0];
-  facts.tuesdayRideId = mixed ? mixed.r.id : null;
-  facts.tuesdayDriver = mixed ? personName(S.personById(mixed.r.driverId)) : '';
-
   facts.marcusFirst = S.personById(MARCUS).firstName;
-  facts.marcusName = personName(S.personById(MARCUS));
   facts.angelaName = personName(S.personById(ANGELA));
   facts.chaperoneName = personName(S.personById(CHAPERONE));
+  facts.jadaName = personName(S.personById(JADA));
   facts.presenterName = CONFIG.presenterName;
   facts.presenterGrade = CONFIG.presenterGrade;
 }
 
 /* ===========================================================================
-   STEP 2 — THE STAGE
+   STAGE PLUMBING
 =========================================================================== */
 let el = {};
 let speed = 1;
@@ -333,7 +332,6 @@ function sleep(ms) {
   });
 }
 
-/** Render a real screen as a given person. */
 function as(personId, role, fn) {
   const r = S.state.role;
   const u = S.state.userId;
@@ -347,8 +345,7 @@ function as(personId, role, fn) {
   }
 }
 
-/** Put HTML on the phone, keeping the frame where it is. */
-async function show(html, { instant = false } = {}) {
+async function showScreen(html, { instant = false } = {}) {
   if (!instant) {
     el.screen.classList.add('is-out');
     await sleep(CONFIG.transitionMs);
@@ -358,11 +355,6 @@ async function show(html, { instant = false } = {}) {
   if (window.lucide) window.lucide.createIcons({ attrs: { 'stroke-width': 2 } });
   drawAllMaps(S.state.data, el.screen);
   el.screen.classList.remove('is-out');
-}
-
-function setPhoneVisible(visible) {
-  el.phone.classList.toggle('is-hidden', !visible);
-  el.card.classList.toggle('is-hidden', visible);
 }
 
 function setPerson(key) {
@@ -389,16 +381,16 @@ function setCaption(text) {
   el.caption.hidden = !captionsOn || !text;
 }
 
-async function tap(target, host = el.phone) {
+async function tap(target) {
   if (!target) return;
-  const hb = host.getBoundingClientRect();
+  const hb = el.phone.getBoundingClientRect();
   const tb = target.getBoundingClientRect();
-  const scale = hb.width / host.offsetWidth || 1;
+  const scale = hb.width / el.phone.offsetWidth || 1;
   const dot = document.createElement('span');
   dot.className = 'film__pulse';
   dot.style.left = `${(tb.left - hb.left) / scale + target.offsetWidth / 2}px`;
   dot.style.top = `${(tb.top - hb.top) / scale + Math.min(target.offsetHeight / 2, 30)}px`;
-  host.appendChild(dot);
+  el.phone.appendChild(dot);
   await sleep(CONFIG.tapPulseMs);
   dot.remove();
 }
@@ -415,7 +407,7 @@ function toast(iconName, text) {
 
 function countUp(node, from, to) {
   if (!node || from >= to) return;
-  const stepMs = Math.max(30, 900 / Math.max(1, to - from)) / speed;
+  const stepMs = Math.max(30, 1100 / Math.max(1, to - from)) / speed;
   let n = from;
   node.textContent = String(n);
   const timer = setInterval(() => {
@@ -430,7 +422,7 @@ function countUp(node, from, to) {
   }, stepMs * (to - from) + 500);
 }
 
-function fillTicks(ids, perTickMs = 60) {
+function fillTicks(ids, perTickMs) {
   ids.forEach((id, i) => {
     const tick = el.screen.querySelector(`.dial__tick[data-student="${id}"]`);
     if (!tick) return;
@@ -446,8 +438,16 @@ function everySpotFilled() {
   }
 }
 
+async function ringEach(nodes, hold) {
+  for (const node of nodes) {
+    node.classList.add('film__ring');
+    await sleep(hold);
+    node.classList.remove('film__ring');
+  }
+}
+
 /* --------------------------------------------------------------------------
-   The chat prop. Marcus's own messages sit on the right with no name or
+   The chat prop. Marcus's own messages sit on the right with no name and no
    avatar, the way your own messages look in any group chat.
    -------------------------------------------------------------------------- */
 const CHAT_COLOURS = {
@@ -458,12 +458,8 @@ const ME = 'Marcus';
 const typingMsFor = (text) =>
   Math.min(CONFIG.chat.typeMaxMs, CONFIG.chat.typeBaseMs + text.length * CONFIG.chat.typePerCharMs);
 
-function chatDurationMs(key) {
-  return CONFIG.chats[key].reduce(
-    (sum, [, text]) => sum + typingMsFor(text) + CONFIG.chat.gapMs,
-    0
-  );
-}
+const chatDurationMs = (key) =>
+  CONFIG.chats[key].reduce((sum, [, text]) => sum + typingMsFor(text) + CONFIG.chat.gapMs, 0);
 
 function chatShell() {
   return `<div class="film__chat">
@@ -520,23 +516,22 @@ async function playChat(key) {
 }
 
 /* ===========================================================================
-   STEP 3 — THE SEGMENTS
-   Each one restores its own snapshot, builds its screen, plays, and resolves.
-   `check` is used by the self-check run.
+   THE SEGMENTS
 =========================================================================== */
+const CARD_SEGMENTS = ['title', 'behind', 'code', 'rules'];
+
 const SCENES = {
   chat1: {
     async run() {
       restore('start');
-      await show(chatShell(), { instant: true });
+      await showScreen(chatShell(), { instant: true });
       await playChat('chat1');
     },
     check: () => {
-      const bubbles = el.screen.querySelectorAll('.film__bubble').length;
-      const mine = el.screen.querySelectorAll('.film__bubble--me').length;
       const out = [];
+      const bubbles = el.screen.querySelectorAll('.film__bubble').length;
       if (bubbles !== CONFIG.chats.chat1.length) out.push(`${bubbles} bubbles, expected ${CONFIG.chats.chat1.length}`);
-      if (!mine) out.push("Marcus's own messages are not on the right");
+      if (!el.screen.querySelectorAll('.film__bubble--me').length) out.push("Marcus's messages are not on the right");
       if (!el.screen.querySelector('.is-shout')) out.push('no ALL CAPS shake applied');
       if (el.screen.querySelector('.is-typing')) out.push('a typing indicator never resolved');
       return out;
@@ -546,14 +541,13 @@ const SCENES = {
   hook: {
     async run() {
       restore('start');
-      await show(as(MARCUS, 'student', () => Screens.signIn()), { instant: true });
+      await showScreen(as(MARCUS, 'student', () => Screens.signIn()), { instant: true });
     },
     check: () => (el.screen.querySelector('.welcome') ? [] : ['welcome screen not rendered']),
   },
 
   title: {
     async run() {
-      setPhoneVisible(false);
       el.card.innerHTML = `<div class="film__card">
         <div class="wordmark">AfterBell<span class="wordmark__dot"></span></div>
         <p class="film__tag">Every spot filled</p>
@@ -563,8 +557,7 @@ const SCENES = {
           <li>100+ students said it's a great idea.</li>
         </ul>
       </div>`;
-      const items = [...el.card.querySelectorAll('.film__lines li')];
-      for (const item of items) {
+      for (const item of [...el.card.querySelectorAll('.film__lines li')]) {
         await sleep(1600);
         item.classList.add('is-in');
       }
@@ -578,20 +571,19 @@ const SCENES = {
   join: {
     async run() {
       restore('start');
-      await show(as(MARCUS, 'student', () => Screens.signIn()), { instant: true });
+      await showScreen(as(MARCUS, 'student', () => Screens.signIn()), { instant: true });
       await sleep(900);
       await tap(el.screen.querySelector('#film-si-code'));
 
-      await show(as(MARCUS, 'student', () => Screens.activities()));
-      await sleep(1600);
-
-      await show(as(MARCUS, 'student', () => Screens.studentHome()));
-      await sleep(1600);
+      await showScreen(as(MARCUS, 'student', () => Screens.activities()));
+      await sleep(1500);
+      await showScreen(as(MARCUS, 'student', () => Screens.studentHome()));
+      await sleep(1500);
 
       restore('approved');
       toast('user-round-check', `${facts.angelaName} approved your account`);
       await sleep(2200);
-      await show(as(MARCUS, 'student', () => Screens.studentHome()));
+      await showScreen(as(MARCUS, 'student', () => Screens.studentHome()));
     },
     check: () => {
       const out = [];
@@ -605,30 +597,23 @@ const SCENES = {
   request: {
     async run() {
       restore('approved');
-      await show(as(MARCUS, 'student', () => Screens.studentHome()), { instant: true });
-      await sleep(800);
-      await tap(el.screen.querySelector(`[data-href="#/event/${SATURDAY}"]`));
+      await showScreen(as(MARCUS, 'student', () => Screens.studentHome()), { instant: true });
+      await sleep(700);
+      await tap(el.screen.querySelector(`[data-href="#/event/${BAND_AM}"]`));
 
-      await show(as(MARCUS, 'student', () => Screens.requestRide(SATURDAY)));
-      await sleep(1200);
+      await showScreen(as(MARCUS, 'student', () => Screens.requestRide(BAND_AM)));
+      await sleep(1100);
       await tap(el.screen.querySelector('[data-action="request-ride"]'));
 
       restore('requested');
-      await show(as(MARCUS, 'student', () => Screens.matching(SATURDAY)));
+      await showScreen(as(MARCUS, 'student', () => Screens.matching(BAND_AM)));
     },
-    check: () => {
-      const out = [];
-      if (!/Finding your ride/i.test(el.screen.textContent)) out.push('searching screen not shown');
-      if (!el.screen.querySelector('.pin-search') && !el.screen.querySelector('.map')) {
-        out.push('map with the pulsing ring missing');
-      }
-      return out;
-    },
+    check: () =>
+      /Finding your ride/i.test(el.screen.textContent) ? [] : ['searching screen not shown'],
   },
 
   behind: {
     async run() {
-      setPhoneVisible(false);
       el.card.innerHTML = `<div class="film__card"><p class="film__big">Behind the scenes</p></div>`;
     },
     check: () => (/Behind the scenes/.test(el.card.textContent) ? [] : ['card text missing']),
@@ -637,22 +622,24 @@ const SCENES = {
   lisa: {
     async run() {
       restore('lisaBefore');
-      await show(as(LISA, 'parent', () => Screens.parentView()), { instant: true });
-      await sleep(700);
-      const toggle = el.screen.querySelector('[data-action="toggle-offer"]');
-      await tap(toggle);
+      await showScreen(as(LISA, 'parent', () => Screens.parentView()), { instant: true });
+      await sleep(1400);
+      await tap(el.screen.querySelector('[data-action="seats-up"]'));
 
       restore('lisaAfter');
-      await show(as(LISA, 'parent', () => Screens.parentView()));
-      countUp(el.screen.querySelector('[data-seatcount]'), 0, facts.lisaSeats);
+      await showScreen(as(LISA, 'parent', () => Screens.parentView()));
+      countUp(el.screen.querySelector('[data-seatcount]'), facts.lisaTotalSeats - 1, facts.lisaTotalSeats);
+      await sleep(1200);
+      await ringEach([el.screen.querySelector('[data-seatcount]')].filter(Boolean), 1200);
     },
     check: () => {
+      const out = [];
       const seats = el.screen.querySelector('[data-seatcount]');
       const toggle = el.screen.querySelector('[data-action="toggle-offer"]');
-      const out = [];
+      if (!/Volleyball/i.test(el.screen.textContent)) out.push('not showing her volleyball trip');
       if (!toggle || toggle.getAttribute('aria-checked') !== 'true') out.push('offer toggle is not on');
-      if (!seats || Number(seats.textContent.trim()) !== facts.lisaSeats) {
-        out.push(`seat count shows "${seats ? seats.textContent.trim() : '?'}", expected ${facts.lisaSeats}`);
+      if (!seats || Number(seats.textContent.trim()) !== facts.lisaTotalSeats) {
+        out.push(`seat count shows "${seats ? seats.textContent.trim() : '?'}", expected ${facts.lisaTotalSeats}`);
       }
       return out;
     },
@@ -661,20 +648,21 @@ const SCENES = {
   fill: {
     async run() {
       restore('preFill');
-      await show(as('o-moreno', 'organizer', () => Screens.organizer(SATURDAY)), { instant: true });
-      await sleep(2400);
+      await showScreen(as('o-moreno', 'organizer', () => Screens.organizer(BAND_AM)), { instant: true });
+      await sleep(2600);
       await tap(el.screen.querySelector('[data-action="fill-gaps"]'));
 
       restore('filled');
-      await show(as('o-moreno', 'organizer', () => Screens.organizer(SATURDAY)));
-      fillTicks(facts.matchedOrder, 60);
+      await showScreen(as('o-moreno', 'organizer', () => Screens.organizer(BAND_AM)));
+      fillTicks(facts.matchedOrder, 55);
       countUp(el.screen.querySelector('.dial__num'), facts.before, facts.after);
-      await sleep(facts.matchedOrder.length * 60 + 900);
+      await sleep(facts.matchedOrder.length * 55 + 1100);
+      if (!facts.unmatchedCount) everySpotFilled();
     },
     check: () => {
+      const out = [];
       const num = el.screen.querySelector('.dial__num');
       const filled = el.screen.querySelectorAll('.dial__tick.is-filled').length;
-      const out = [];
       if (!num || Number(num.textContent.trim()) !== facts.after) {
         out.push(`dial reads "${num ? num.textContent.trim() : '?'}", expected ${facts.after}`);
       }
@@ -687,24 +675,24 @@ const SCENES = {
   gaps: {
     async run() {
       restore('filled');
-      await show(as('o-moreno', 'organizer', () => Screens.rosterGapsCard(SATURDAY)), { instant: true });
-      await sleep(2000);
+      await showScreen(as('o-moreno', 'organizer', () => Screens.rosterGapsCard(BAND_AM)), { instant: true });
+      await sleep(2200);
       await tap(el.screen.querySelector('[data-action="assign-open"]'));
 
       restore('assigned');
-      await show(as('o-moreno', 'organizer', () => Screens.organizer(SATURDAY)));
-      fillTicks(facts.assignedOrder, 140);
+      await showScreen(as('o-moreno', 'organizer', () => Screens.organizer(BAND_AM)));
+      fillTicks(facts.assignedOrder, 160);
       countUp(el.screen.querySelector('.dial__num'), facts.after, facts.final);
-      await sleep(facts.assignedOrder.length * 140 + 900);
+      await sleep(facts.assignedOrder.length * 160 + 900);
       everySpotFilled();
     },
     check: () => {
-      const num = el.screen.querySelector('.dial__num');
       const out = [];
+      const num = el.screen.querySelector('.dial__num');
       if (!num || Number(num.textContent.trim()) !== facts.final) {
         out.push(`dial reads "${num ? num.textContent.trim() : '?'}", expected ${facts.final}`);
       }
-      if (facts.final !== facts.total) out.push(`final is ${facts.final} of ${facts.total}, not everyone`);
+      if (facts.final !== facts.total) out.push(`final is ${facts.final} of ${facts.total}`);
       if (!el.screen.querySelector('.film__filled')) out.push('"Every spot filled" label missing');
       return out;
     },
@@ -713,24 +701,22 @@ const SCENES = {
   confirmed: {
     async run() {
       restore('filled');
-      await show(as(MARCUS, 'student', () => Screens.matching(SATURDAY)), { instant: true });
+      await showScreen(as(MARCUS, 'student', () => Screens.matching(BAND_AM)), { instant: true });
       await sleep(900);
       toast('car-front', `Ride confirmed — ${facts.lisaName}, ${facts.car}, ${facts.pickupTime}`);
-      await sleep(2000);
-      await show(as(MARCUS, 'student', () => Screens.rideCard(facts.rideId)));
-      await sleep(600);
-      for (const node of [...el.screen.querySelectorAll('.person__act')]) {
-        node.classList.add('film__ring');
-        await sleep(420);
-        node.classList.remove('film__ring');
-      }
+      await sleep(2200);
+      await showScreen(as(MARCUS, 'student', () => Screens.rideCard(facts.rideId)));
+      await sleep(700);
+      await ringEach([...el.screen.querySelectorAll('.person__act')], 1100);
     },
     check: () => {
       const out = [];
-      const text = el.screen.textContent;
+      const acts = [...el.screen.querySelectorAll('.person__act')].map((n) => n.textContent.trim());
       if (!el.screen.querySelector('.handoff__code')) out.push('ride card not shown');
-      if (!text.includes(facts.lisaFirst)) out.push(`driver ${facts.lisaFirst} not on the card`);
-      if (!text.includes(facts.car.split(' ').pop())) out.push('car model not on the card');
+      if (!el.screen.textContent.includes(facts.lisaFirst)) out.push(`${facts.lisaFirst} not on the card`);
+      if (new Set(acts.filter(Boolean)).size < 2) {
+        out.push(`only ${new Set(acts).size} activity on the card, expected band and volleyball`);
+      }
       return out;
     },
   },
@@ -738,7 +724,7 @@ const SCENES = {
   handoff: {
     async run() {
       restore('filled');
-      await show(as(MARCUS, 'student', () => Screens.rideCard(facts.rideId)), { instant: true });
+      await showScreen(as(MARCUS, 'student', () => Screens.rideCard(facts.rideId)), { instant: true });
 
       const inset = document.createElement('div');
       inset.className = 'film__inset';
@@ -747,7 +733,7 @@ const SCENES = {
         <p class="film__insetsub">Driver's screen</p>`;
       el.phone.appendChild(inset);
 
-      await sleep(1400);
+      await sleep(1300);
       const code = el.screen.querySelector('.handoff__code');
       code.classList.add('film__ring');
       inset.classList.add('film__ring');
@@ -771,27 +757,8 @@ const SCENES = {
     },
   },
 
-  cross: {
-    async run() {
-      restore('assigned');
-      await show(as(MARCUS, 'student', () => Screens.rideCard(facts.tuesdayRideId)), { instant: true });
-      await sleep(900);
-      for (const node of [...el.screen.querySelectorAll('.person__act')]) {
-        node.classList.add('film__ring');
-        await sleep(500);
-        node.classList.remove('film__ring');
-      }
-    },
-    check: () => {
-      const acts = [...el.screen.querySelectorAll('.person__act')].map((n) => n.textContent.trim());
-      const unique = new Set(acts.filter(Boolean));
-      return unique.size > 1 ? [] : [`only ${unique.size} activity in the car, expected more than one`];
-    },
-  },
-
   code: {
     async run() {
-      setPhoneVisible(false);
       el.card.innerHTML = `<div class="film__code"><pre class="film__codepre">Loading…</pre></div>`;
       const source = await fetch('./js/matching.js').then((r) => r.text());
       const pre = el.card.querySelector('.film__codepre');
@@ -807,19 +774,18 @@ const SCENES = {
         })
         .join('\n');
 
-      // Scroll through, pausing on each STEP heading as the caption reaches it.
       const box = el.card.querySelector('.film__code');
       const steps = [...pre.querySelectorAll('.film__step')].slice(0, 4);
       for (const step of steps) {
         box.scrollTop = Math.max(0, step.offsetTop - box.clientHeight / 2.4);
         step.classList.add('is-lit');
-        await sleep(2200);
+        await sleep(2300);
         step.classList.remove('is-lit');
       }
     },
     check: () => {
-      const pre = el.card.querySelector('.film__codepre');
       const out = [];
+      const pre = el.card.querySelector('.film__codepre');
       if (!pre || pre.textContent.length < 5000) out.push('matching.js did not load into the viewer');
       if (!el.card.querySelectorAll('.film__step').length) out.push('no algorithm steps highlighted');
       return out;
@@ -828,7 +794,6 @@ const SCENES = {
 
   rules: {
     async run() {
-      setPhoneVisible(false);
       el.card.innerHTML = `<div class="film__card">
         <ul class="film__lines film__lines--rules">
           <li>Only parent-approved adults drive</li>
@@ -837,22 +802,20 @@ const SCENES = {
         <p class="film__big film__quote">The hardest part wasn't the code.<br />
           It was the rules real people live by.</p>
       </div>`;
-      const items = [...el.card.querySelectorAll('.film__lines li')];
-      for (const item of items) {
-        await sleep(1400);
+      for (const item of [...el.card.querySelectorAll('.film__lines li')]) {
+        await sleep(1500);
         item.classList.add('is-in');
       }
-      await sleep(1200);
+      await sleep(1300);
       el.card.querySelector('.film__quote').classList.add('is-in');
     },
-    check: () =>
-      el.card.querySelector('.film__quote.is-in') ? [] : ['closing line never appeared'],
+    check: () => (el.card.querySelector('.film__quote.is-in') ? [] : ['closing line never appeared']),
   },
 
   chat2: {
     async run() {
       restore('pickedUp');
-      await show(chatShell(), { instant: true });
+      await showScreen(chatShell(), { instant: true });
       await playChat('chat2');
     },
     check: () => {
@@ -866,9 +829,9 @@ const SCENES = {
   final: {
     async run() {
       restore('assigned');
-      await show(as('o-moreno', 'organizer', () => Screens.organizer(SATURDAY)), { instant: true });
+      await showScreen(as('o-moreno', 'organizer', () => Screens.organizer(BAND_AM)), { instant: true });
       everySpotFilled();
-      await sleep(2200);
+      await sleep(2300);
       const mark = document.createElement('div');
       mark.className = 'film__final';
       mark.innerHTML = `<span class="wordmark">AfterBell<span class="wordmark__dot"></span></span>`;
@@ -878,8 +841,8 @@ const SCENES = {
       await sleep(2000);
     },
     check: () => {
-      const num = el.screen.querySelector('.dial__num');
       const out = [];
+      const num = el.screen.querySelector('.dial__num');
       if (!num || Number(num.textContent.trim()) !== facts.total) {
         out.push(`dial reads "${num ? num.textContent.trim() : '?'}", expected ${facts.total}`);
       }
@@ -889,19 +852,15 @@ const SCENES = {
   },
 };
 
-/** How long a segment is scheduled for, in ms. */
-function segmentMs(key) {
+const segmentMs = (key) => {
   const spec = CONFIG.segments[key];
-  if (spec.seconds === null) return chatDurationMs(key);
-  return spec.seconds * 1000;
-}
+  return spec.seconds === null ? chatDurationMs(key) : spec.seconds * 1000;
+};
 
-export function totalRuntimeMs() {
-  return ORDER.reduce((sum, key) => sum + segmentMs(key), 0);
-}
+export const totalRuntimeMs = () => ORDER.reduce((sum, key) => sum + segmentMs(key), 0);
 
 /* ===========================================================================
-   STEP 4 — THE RUNNER
+   THE RUNNER
 =========================================================================== */
 function clearStage() {
   el.phone.querySelectorAll('.film__toast, .film__inset, .film__final, .film__pulse')
@@ -912,16 +871,15 @@ function clearStage() {
 async function playSegment(key) {
   const spec = CONFIG.segments[key];
   clearStage();
-  setPhoneVisible(spec.person !== null || key === 'chat1' || key === 'chat2' || !!SCENES[key].usesPhone);
-  // Card segments are the ones with no person and their own card markup.
-  const cardSegments = ['title', 'behind', 'code', 'rules'];
-  setPhoneVisible(!cardSegments.includes(key));
+
+  const isCard = CARD_SEGMENTS.includes(key);
+  el.phone.classList.toggle('is-hidden', isCard);
+  el.card.classList.toggle('is-hidden', !isCard);
 
   setPerson(spec.person);
   setCaption(spec.caption ? spec.caption(facts) : '');
 
-  // The segment gets at least its scheduled time, and is never cut off
-  // mid-animation.
+  // At least the scheduled time, and never cut off mid-animation.
   await Promise.all([sleep(segmentMs(key)), SCENES[key].run()]);
 }
 
@@ -943,40 +901,30 @@ async function playFilm() {
   await sleep(CONFIG.holdLastMs);
   if (mine !== runToken) return;
 
-  // A blank tail to trim against. Nothing else: no buttons, no text.
   setCaption('');
-  el.blank.hidden = false;
+  el.blank.hidden = false;      // a blank tail to trim against. Nothing else.
 }
 
 /* ===========================================================================
-   STEP 5 — SELF-CHECK  (?film=1&check=1)
+   SELF-CHECK  (?film=1&check=1)
 =========================================================================== */
 async function selfCheck() {
   speed = 8;
+  computeResults();
+
   const lines = [];
   let failures = 0;
 
-  computeResults();
-
   for (const key of ORDER) {
-    clearStage();
-    const cardSegments = ['title', 'behind', 'code', 'rules'];
-    setPhoneVisible(!cardSegments.includes(key));
     const spec = CONFIG.segments[key];
-    setPerson(spec.person);
-    setCaption(spec.caption ? spec.caption(facts) : '');
-
     let problems = [];
     try {
-      await Promise.all([sleep(segmentMs(key)), SCENES[key].run()]);
+      await playSegment(key);
       problems = SCENES[key].check() || [];
 
-      // Shared checks, applied to every segment.
       if (spec.person) {
         const expected = personName(S.personById(CONFIG.people[spec.person].id));
-        if (!el.label.textContent.includes(expected)) {
-          problems.push(`person label should read ${expected}`);
-        }
+        if (!el.label.textContent.includes(expected)) problems.push(`label should read ${expected}`);
       }
       if (spec.caption) {
         const text = spec.caption(facts);
@@ -989,21 +937,19 @@ async function selfCheck() {
 
     if (problems.length) failures += 1;
     lines.push(
-      `${problems.length ? 'FAIL' : 'PASS'}  ${key.padEnd(10)} ` +
-      `${(segmentMs(key) / 1000).toFixed(1)}s` +
+      `${problems.length ? 'FAIL' : 'PASS'}  ${key.padEnd(10)} ${(segmentMs(key) / 1000).toFixed(1)}s` +
       (problems.length ? `\n        - ${problems.join('\n        - ')}` : '')
     );
   }
 
   const total = totalRuntimeMs();
-  const overCap = total > CONFIG.maxRuntimeMs;
-  if (overCap) failures += 1;
+  const over = total > CONFIG.maxRuntimeMs;
+  if (over) failures += 1;
 
   lines.push('');
   lines.push(
-    `${overCap ? 'FAIL' : 'PASS'}  runtime    ` +
-    `${Math.floor(total / 60000)}:${String(Math.round((total % 60000) / 1000)).padStart(2, '0')}` +
-    ` (cap ${Math.floor(CONFIG.maxRuntimeMs / 60000)}:${String((CONFIG.maxRuntimeMs % 60000) / 1000).padStart(2, '0')})`
+    `${over ? 'FAIL' : 'PASS'}  runtime    ` +
+    `${Math.floor(total / 60000)}:${String(Math.round((total % 60000) / 1000)).padStart(2, '0')} (cap 2:58)`
   );
   lines.push('');
   lines.push(failures ? `${failures} SEGMENT(S) FAILED` : 'ALL SEGMENTS PASS');
@@ -1015,7 +961,7 @@ async function selfCheck() {
 }
 
 /* ===========================================================================
-   STEP 6 — BOOT
+   BOOT
 =========================================================================== */
 function fitStage() {
   const scale = Math.min(
@@ -1049,7 +995,7 @@ export function startFilmMode() {
   document.body.classList.add('is-film');
 
   document.getElementById('main').innerHTML = `
-    <div class="film" id="film-root">
+    <div class="film">
       <div class="film__stage" id="film-stage">
         <div class="film__label" id="film-label"></div>
         <div class="film__middle">
@@ -1090,12 +1036,11 @@ export function startFilmMode() {
   }
 
   if (params.get('seg')) {
-    const index = Number(params.get('seg')) - 1;
-    const key = ORDER[index];
+    computeResults();
+    const key = ORDER[Number(params.get('seg')) - 1];
     if (key) {
       el.start.hidden = true;
       document.body.classList.add('is-playing');
-      computeResults();
       playSegment(key);
       return;
     }
@@ -1122,7 +1067,7 @@ export function startFilmMode() {
   });
 }
 
-/** Used by the build report so the script is never retyped by hand. */
+/** Used by the build report, so the script is never retyped by hand. */
 export function captionScript() {
   if (!facts.total) computeResults();
   return ORDER.map((key, i) => ({

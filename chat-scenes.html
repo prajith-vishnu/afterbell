@@ -164,8 +164,8 @@ body {
   </div>
 
   <div class="controls" id="controls">
-    <button class="btn" data-scene="1" aria-pressed="false">Scene 1 — before</button>
-    <button class="btn" data-scene="2" aria-pressed="false">Scene 2 — after</button>
+    <button class="btn" data-scene="1" aria-pressed="false">Scene 1 — 5:48 AM</button>
+    <button class="btn" data-scene="2" aria-pressed="false">Scene 2 — 6:27 AM</button>
     <button class="btn" id="replay">Replay</button>
     <button class="btn" id="hide">Hide controls</button>
     <p class="hint"><strong>1</strong> and <strong>2</strong> play a scene ·
@@ -181,30 +181,32 @@ body {
 =========================================================================== */
 const SCENES = {
   1: [
-    ['Maya',   'bus gets back to braswell at 11:30 tonight', '4:12 PM'],
-    ['Maya',   'everyone have a ride home?? reply here', '4:12 PM'],
-    ['Maya',   '…marcus?', '4:14 PM'],
-    ['Marcus', 'my mom works nights 😭', '4:16 PM'],
-    ['Marcus', 'i might have to skip area', '4:16 PM'],
-    ['Maya',   'MARCUS YOU CANNOT SKIP AREA', '4:17 PM'],
-    ['Dev',    'spot 14 would literally just be empty', '4:17 PM'],
-    ['Ari',    'my mom’s car is already full 😭', '4:18 PM'],
-    ['Maya',   'WHO IS DRIVING MARCUS', '4:18 PM'],
-    ['Dev',    'bro just get AfterBell', '4:19 PM'],
-    ['Dev',    'my neighbor drives band kids on it all the time', '4:19 PM'],
-    ['Marcus', 'getting it rn', '4:20 PM'],
+    ['Maya',   'area rehearsal at 6:30, bus to the contest leaves at 9', '5:48 AM'],
+    ['Maya',   'everyone up?? reply here', '5:48 AM'],
+    ['Chris',  'here 😴', '5:49 AM'],
+    ['Maya',   '…marcus?', '5:51 AM'],
+    ['Marcus', 'i’m up but i don’t have a ride 😭', '5:52 AM'],
+    ['Marcus', 'my mom left for work at 5', '5:52 AM'],
+    ['Maya',   'MARCUS IT’S AREA', '5:53 AM'],
+    ['Dev',    'spot 14 can’t be empty at area bro', '5:53 AM'],
+    ['Ari',    'my mom’s car is already full 😭', '5:54 AM'],
+    ['Maya',   'WHO IS DRIVING MARCUS', '5:54 AM'],
+    ['Dev',    'bro just get AfterBell', '5:55 AM'],
+    ['Dev',    'my neighbor takes her daughter to volleyball at 6:30 and she drives people on it', '5:55 AM'],
+    ['Marcus', 'getting it rn', '5:56 AM'],
   ],
   2: [
-    ['Marcus', 'made it home 🏠', '11:52 PM'],
-    ['Marcus', 'got a ride with dev’s neighbor lol', '11:52 PM'],
-    ['Dev',    'told you 😎', '11:53 PM'],
-    ['Maya',   'MARCUS!!!', '11:53 PM'],
-    ['Chris',  'spot 14 stays FILLED 🙏', '11:54 PM'],
+    ['Marcus', 'HERE 🏃', '6:27 AM'],
+    ['Marcus', 'got a ride with dev’s neighbor and her daughter from volleyball lol', '6:27 AM'],
+    ['Dev',    'told you 😎', '6:28 AM'],
+    ['Maya',   'MARCUS!!!', '6:28 AM'],
+    ['Chris',  'spot 14 is FILLED 🙏', '6:29 AM'],
+    ['Maya',   'ok everyone on the field', '6:29 AM'],
   ],
 };
 
 /* Pacing. Matches the film; change it here to retime this page on its own. */
-const GAP_MS = 1200;          // between messages
+const GAP_MS = 1000;          // between messages (matches the film)
 const TYPE_BASE_MS = 500;     // typing indicator, plus per character
 const TYPE_PER_CHAR_MS = 20;
 const TYPE_MAX_MS = 1500;

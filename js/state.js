@@ -112,9 +112,18 @@ export function rosterFor(activityId) {
    event?". Every screen asks this question, so it is answered in one place.
 --------------------------------------------------------------------------- */
 export function rideStatusFor(studentId, eventId) {
-  const ride = state.data.rides.find(
-    (r) => r.eventId === eventId && r.riderIds.includes(studentId)
-  );
+  // A car belongs to whichever activity's trip the DRIVER offered on, but a
+  // rider can be there for a different activity entirely — that is the whole
+  // point of the app. So a student's ride is found through their own request,
+  // not through the car's event. Without this, a band student riding in a
+  // volleyball parent's car would still show as having no ride on the band
+  // director's screen.
+  const ride = state.data.rides.find((r) => {
+    const seat = r.riderIds.indexOf(studentId);
+    if (seat === -1) return false;
+    const request = state.data.requests.find((q) => q.id === r.requestIds[seat]);
+    return request ? request.eventId === eventId : r.eventId === eventId;
+  });
   if (ride) return { code: 'confirmed', ride };
 
   const request = state.data.requests.find(

@@ -196,6 +196,7 @@ const STUDENT_ROWS = [
   ['s58','Wren','A',    9,14,'providence',  'h-s58', true,  null, false],
   ['s59','Bianca','O', 11,16,'winn-ridge',  'h-okafor', true, null, false], // Nia's sister
   ['s60','Trey','L',   11,16,'savannah',    'h-lane', true, null, false], // Sofia's brother
+  ['s61','Jada','W',   11,16,'savannah',    'h-lane', true, null, false], // Lisa's daughter, volleyball
 ];
 
 // PARENT COLUMNS: id, firstName, lastInitial, neighborhoodId, householdId, childIds
@@ -207,7 +208,7 @@ const PARENT_ROWS = [
   ['p04','Mark','O',   'winn-ridge',  'h-okafor',  ['s13','s37','s59']],
   ['p05','Angela','K', 'union-park',  'h-kaur',    ['s16']],
   ['p06','Chris','V',  'silverado',   'h-vega',    ['s31']],
-  ['p07','Lisa','L',   'savannah',    'h-lane',    ['s20','s60']],
+  ['p07','Lisa','L',   'savannah',    'h-lane',    ['s20','s60','s61']],
   ['p08','Hector','G', 'paloma-creek','h-garza',   ['s22']],
   ['p09','Tara','L',   'providence',  'h-lund',    ['s26']],
   ['p10','Olivia','D', 'winn-ridge',  'h-dumont',  ['s28','s53']],
@@ -329,7 +330,7 @@ export const MEMBERSHIPS = [
   ['s37','volleyball','Middle Blocker'], ['s38','volleyball','Libero'],
   ['s39','volleyball','Right Side'],     ['s40','volleyball','Outside Hitter'],
   ['s41','volleyball','Setter'],         ['s42','volleyball','Middle Blocker'],
-  ['s43','volleyball','Libero'],         ['s44','volleyball','Right Side'],
+  ['s43','volleyball','Libero'],         ['s44','volleyball','Right Side'],         ['s61','volleyball','Outside Hitter'],
 
   // Theater (9)
   ['s45','theater','Cast'], ['s46','theater','Cast'], ['s47','theater','Crew'],
@@ -461,6 +462,39 @@ export const EVENTS = [
     needsRide: ['s48', 's49', 's55', 's56'],
   },
   {
+    id: 'e-vball-sat-am',
+    activityId: 'volleyball',
+    title: 'Saturday Volleyball Practice',
+    detail: 'Open gym before the tournament, on the court by 6:30',
+    where: 'Ray Braswell HS',
+    startISO: '2026-10-31T06:30',
+    endISO: '2026-10-31T08:30',
+    direction: 'to',
+    destinationId: 'school',
+    rideTimeISO: '2026-10-31T06:00',
+    // Everyone else on the roster already has a ride this early.
+    needsRide: ['s61', 's37', 's38', 's39', 's41', 's42', 's43', 's44'],
+  },
+  {
+    id: 'e-band-sat-am',
+    activityId: 'band',
+    title: 'UIL Area Morning Rehearsal',
+    detail: 'Last run before the buses leave for the contest at 9',
+    where: 'Ray Braswell HS',
+    startISO: '2026-10-31T06:30',
+    endISO: '2026-10-31T08:45',
+    direction: 'to',
+    destinationId: 'school',
+    // Five minutes after the volleyball pickup, so the two land in the same
+    // 15-minute bucket and the algorithm can put them in the same car.
+    rideTimeISO: '2026-10-31T06:05',
+    needsRide: [
+      's01','s02','s03','s04','s05','s06','s07','s08','s09','s10','s11','s12',
+      's13','s14','s15','s16','s17','s18','s19','s22','s23','s24','s25','s26',
+      's27','s28','s29','s30','s31','s32','s33',
+    ],
+  },
+  {
     id: 'e-band-sat',
     activityId: 'band',
     title: 'UIL Area Marching Contest — ride home',
@@ -514,6 +548,21 @@ const OFFER_ROWS = [
   // --- Friday, 6:00 a.m. to the XC meet ---------------------------------
   ['of-fri-p09','p09','e-xc-fri',  2, 'Full already'],
   ['of-fri-p10','p10','e-xc-fri',  2, 'Happy to help if anyone is close by'],
+
+  // --- Saturday morning, 6:00-6:05 a.m. to school -----------------------
+  // Lisa is already taking her daughter Jada to volleyball; her spare seat is
+  // what the algorithm finds for a band student in the same neighbourhood.
+  ['of-e-vball-sat-am-p07','p07','e-vball-sat-am', 2, 'Taking Jada to practice, one spare'],
+  ['of-satam-p01','p01','e-band-sat-am',  4, 'Full already'],
+  ['of-satam-p08','p08','e-band-sat-am',  5, 'Big van, Paloma Creek'],
+  ['of-satam-p02','p02','e-band-sat-am',  4, 'Paloma Creek'],
+  ['of-satam-p03','p03','e-band-sat-am',  4, 'Providence Village'],
+  ['of-satam-p09','p09','e-band-sat-am',  4, 'Providence Village'],
+  ['of-satam-p04','p04','e-band-sat-am',  4, 'Winn Ridge'],
+  ['of-satam-p10','p10','e-band-sat-am',  4, 'Winn Ridge'],
+  ['of-satam-p05','p05','e-band-sat-am',  4, 'Union Park'],
+  ['of-satam-p06','p06','e-band-sat-am',  2, 'Silverado'],
+  ['of-satam-rivera','c-rivera','e-band-sat-am', 4, 'Chaperone — assign by hand'],
 
   // --- Saturday, 11:30 p.m. home from the contest -----------------------
   // Five cars are already full (parents who claimed seats when the trip was
@@ -570,6 +619,30 @@ const REQUEST_ROWS = [
   ['s48','e-xc-fri','assigned'], ['s49','e-xc-fri','assigned'],
   ['s55','e-xc-fri','pending'],  ['s56','e-xc-fri','pending'],
 
+  // Saturday morning rehearsal and practice, both arriving by 6:30
+  ['s61','e-vball-sat-am','assigned'],
+  ['s37','e-vball-sat-am','pending'], ['s38','e-vball-sat-am','pending'],
+  ['s39','e-vball-sat-am','pending'], ['s41','e-vball-sat-am','pending'],
+  ['s42','e-vball-sat-am','pending'], ['s43','e-vball-sat-am','pending'],
+  ['s44','e-vball-sat-am','pending'],
+
+  ['s01','e-band-sat-am','assigned'], ['s02','e-band-sat-am','assigned'],
+  ['s03','e-band-sat-am','assigned'], ['s04','e-band-sat-am','assigned'],
+  ['s05','e-band-sat-am','pending'],  ['s06','e-band-sat-am','pending'],
+  ['s07','e-band-sat-am','pending'],  ['s08','e-band-sat-am','pending'],
+  ['s09','e-band-sat-am','pending'],  ['s10','e-band-sat-am','pending'],
+  ['s11','e-band-sat-am','pending'],  ['s12','e-band-sat-am','pending'],
+  ['s13','e-band-sat-am','pending'],  ['s14','e-band-sat-am','pending'],
+  ['s15','e-band-sat-am','pending'],  ['s16','e-band-sat-am','pending'],
+  ['s17','e-band-sat-am','pending'],  ['s18','e-band-sat-am','pending'],
+  ['s19','e-band-sat-am','pending'],  ['s22','e-band-sat-am','pending'],
+  ['s23','e-band-sat-am','pending'],  ['s24','e-band-sat-am','pending'],
+  ['s25','e-band-sat-am','pending'],  ['s26','e-band-sat-am','pending'],
+  ['s27','e-band-sat-am','pending'],  ['s28','e-band-sat-am','pending'],
+  ['s29','e-band-sat-am','pending'],  ['s30','e-band-sat-am','pending'],
+  ['s31','e-band-sat-am','pending'],  ['s32','e-band-sat-am','pending'],
+  ['s33','e-band-sat-am','pending'],
+
   // Saturday contest, ride home at 11:30 p.m.
   // 18 already in a car, 16 still waiting. Fill the Gaps seats 14 of the 16.
   ['s01','e-band-sat','assigned'], ['s02','e-band-sat','assigned'],
@@ -605,6 +678,9 @@ const SEEDED_RIDE_ROWS = [
   ['of-thu-p02', ['s43','s44']],
 
   ['of-fri-p09', ['s48','s49']],
+
+  ['of-satam-p01', ['s01','s02','s03','s04']],
+  ['of-e-vball-sat-am-p07', ['s61']],
 
   ['of-sat-p01', ['s01','s02','s03','s04']],
   ['of-sat-p02', ['s05','s06','s07','s08']],

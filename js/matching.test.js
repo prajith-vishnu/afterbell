@@ -385,6 +385,120 @@ test('demo: Tuesday evening builds a car with three different activities', () =>
   eq(new Set(biggest.riderRequestIds.map((id) => byId[id].activityId)).size, 3, 'activities in one car:');
 });
 
+/* ===========================================================================
+   THE SATURDAY MORNING TRIP — the cross-activity case the film is built on.
+   A band student and a volleyball player, same neighbourhood, same school,
+   five minutes apart, end up in one car.
+=========================================================================== */
+
+/** Everything on the same trip as an event: same endpoint, direction, window. */
+function tripOf(state, eventId) {
+  const event = state.events.find((e) => e.id === eventId);
+  const onTrip = (record) =>
+    record.destinationId === event.destinationId &&
+    record.direction === event.direction &&
+    Math.abs(toMinutes(record.timeISO) - toMinutes(event.rideTimeISO)) <= 15;
+
+  return fillTheGaps({
+    requests: state.requests.filter(onTrip),
+    // The chaperone's seats are held back for the organizer to assign by hand.
+    offers: state.offers.filter((o) => !o.manualOnly && onTrip(o)),
+    people: state.people,
+    neighborhoods: state.neighborhoods,
+    existingRides: state.rides,
+    settings: state.settings,
+  });
+}
+
+test('morning: the band rehearsal and the volleyball practice are one trip', () => {
+  const state = buildSeedState();
+  const band = state.events.find((e) => e.id === 'e-band-sat-am');
+  const volleyball = state.events.find((e) => e.id === 'e-vball-sat-am');
+
+  eq(band.destinationId, volleyball.destinationId, 'same destination:');
+  eq(band.direction, volleyball.direction, 'same direction:');
+  ok(
+    Math.abs(toMinutes(band.rideTimeISO) - toMinutes(volleyball.rideTimeISO)) <= 15,
+    'the two pickups are inside one matching window'
+  );
+
+  const buckets = buildBuckets(
+    state.requests.filter((r) => r.eventId === band.id || r.eventId === volleyball.id),
+    state.offers.filter((o) => o.eventId === band.id || o.eventId === volleyball.id)
+  );
+  eq(buckets.length, 1, 'buckets the two events land in:');
+});
+
+test('morning: Marcus has no ride before Fill the Gaps', () => {
+  const state = buildSeedState();
+  const seated = new Set(state.rides.flatMap((r) => r.riderIds));
+  ok(!seated.has('s19'), 'Marcus is not in a car yet');
+
+  const waiting = state.requests.find(
+    (r) => r.studentId === 's19' && r.eventId === 'e-band-sat-am'
+  );
+  ok(waiting && waiting.status === 'pending', "Marcus's morning request is waiting");
+});
+
+test('morning: Fill the Gaps puts Marcus in Lisa\'s car, with Jada', () => {
+  const state = buildSeedState();
+  const result = tripOf(state, 'e-band-sat-am');
+
+  const marcusCar = result.cars.find((car) => car.riderIds.includes('s19'));
+  ok(marcusCar, 'Marcus was seated');
+  eq(marcusCar.driverId, 'p07', "Marcus's driver:");
+
+  // Jada was already in her mother's car; Marcus takes the spare seat.
+  const existing = state.rides.find((r) => r.offerId === marcusCar.offerId);
+  ok(existing && existing.riderIds.includes('s61'), 'Jada is in the same car');
+
+  // One band student, one volleyball player, one car.
+  const byId = Object.fromEntries(state.requests.map((r) => [r.id, r]));
+  const activities = new Set([
+    ...marcusCar.riderRequestIds.map((id) => byId[id].activityId),
+    ...existing.riderIds.map(
+      (sid) => state.requests.find((r) => r.studentId === sid && r.eventId === 'e-vball-sat-am').activityId
+    ),
+  ]);
+  eq([...activities].sort(), ['band', 'volleyball'], 'activities sharing the car:');
+});
+
+test('morning: Dev already has a ride, and it is not Lisa\'s car', () => {
+  const state = buildSeedState();
+  const devCar = state.rides.find((r) => r.riderIds.includes('s02'));
+  ok(devCar, 'Dev already has a ride');
+  ok(devCar.driverId !== 'p07', "Dev is not in Lisa's car");
+});
+
+test('morning: at most two are left over, and they fit the chaperone', () => {
+  const state = buildSeedState();
+  const result = tripOf(state, 'e-band-sat-am');
+  const rivera = state.offers.find((o) => o.driverId === 'c-rivera' && o.eventId === 'e-band-sat-am');
+
+  ok(result.unmatched.length <= 2, `${result.unmatched.length} left over, expected 2 or fewer`);
+  ok(rivera, 'the chaperone has a morning offer');
+  ok(
+    result.unmatched.length <= rivera.seats,
+    `${result.unmatched.length} left over must fit ${rivera.seats} chaperone seats`
+  );
+  for (const miss of result.unmatched) {
+    ok(miss.reason && miss.reason.length > 20, `${miss.studentId} has a real reason`);
+  }
+});
+
+test('morning: a rider counts for their OWN activity, whoever is driving', () => {
+  // Marcus rides in a car a volleyball parent offered. The band director's
+  // screen still has to see him as covered.
+  const state = buildSeedState();
+  const result = tripOf(state, 'e-band-sat-am');
+  const marcusCar = result.cars.find((car) => car.riderIds.includes('s19'));
+  const offer = state.offers.find((o) => o.id === marcusCar.offerId);
+
+  eq(offer.eventId, 'e-vball-sat-am', "the car was offered on volleyball's trip:");
+  const request = state.requests.find((r) => r.id === marcusCar.riderRequestIds[marcusCar.riderIds.indexOf('s19')]);
+  eq(request.eventId, 'e-band-sat-am', "but Marcus's request is the band one:");
+});
+
 /* ---------------------------------------------------------------------------
    REPORT
 --------------------------------------------------------------------------- */
