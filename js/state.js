@@ -10,7 +10,17 @@
 import { buildSeedState, DEMO_ACCOUNTS } from './seed.js';
 import {
   fillTheGaps, handoffCode, toMinutes, crossesCurfew, countsAgainstTeenLimit,
+  formatTime, parseStamp,
 } from './matching.js';
+
+/** Add minutes to a wall-clock stamp, staying in wall-clock time. */
+function addMinutes(iso, minutes) {
+  const t = parseStamp(iso);
+  let total = t.hour * 60 + t.minute + minutes;
+  const hour = Math.floor(total / 60) % 24;
+  const minute = total % 60;
+  return `${iso.slice(0, 11)}${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
 
 /* ---------------------------------------------------------------------------
    THE STATE OBJECT
@@ -283,7 +293,10 @@ export function approveStudent(studentId) {
 export function markPickedUp(rideId, value = true) {
   const ride = rideById(rideId);
   ride.pickedUp = value;
-  ride.pickedUpAt = value ? '6:42 AM' : null; // demo stamp
+  // Twelve minutes after the car was due: a plausible stamp that follows the
+  // trip, so a late contest does not report a morning pickup.
+  const offer = offerById(ride.offerId);
+  ride.pickedUpAt = value ? formatTime(addMinutes(offer.timeISO, 12)) : null;
 
   if (value) {
     const names = ride.riderIds.map((id) => personById(id).firstName).join(', ');

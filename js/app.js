@@ -15,6 +15,7 @@ import { drawAllMaps } from './map.js';
 import { downloadRidePlan } from './export.js';
 import { isTourMode, startTour } from './tour.js';
 import { isPresentationMode, startPresentation } from './presentation.js';
+import { isFilmMode, startFilmMode } from './film.js';
 
 /* ---------------------------------------------------------------------------
    TABS
@@ -381,7 +382,10 @@ document.addEventListener('change', (event) => {
 const roleParam = new URLSearchParams(location.search).get('role');
 if (roleParam && S.DEMO_ACCOUNTS[roleParam]) S.setRole(roleParam);
 
-if (isPresentationMode()) {
+if (isFilmMode()) {
+  // The whole demo video, start to finish, for screen recording.
+  startFilmMode();
+} else if (isPresentationMode()) {
   // Beat-by-beat walkthrough for recording. Space advances.
   startPresentation();
 } else if (isTourMode()) {

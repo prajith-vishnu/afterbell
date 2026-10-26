@@ -37,7 +37,11 @@ export { formatTime };
 /** "Jalen M." — the only name format this app displays. Staff keep their title. */
 export function personName(person) {
   if (!person) return 'Unknown';
-  if (person.role === 'organizer') return `${person.firstName} ${person.lastInitial}`;
+  // Staff and chaperones are stored as a title plus a surname, which is how
+  // a student would actually say it, so they get no trailing initial dot.
+  if (person.role === 'organizer' || person.role === 'chaperone') {
+    return `${person.firstName} ${person.lastInitial}`;
+  }
   return `${person.firstName} ${person.lastInitial}.`;
 }
 

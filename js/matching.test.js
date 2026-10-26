@@ -312,7 +312,7 @@ test('every unmatched student gets a sentence and a rule label', () => {
 /* ===========================================================================
    THE DEMO ITSELF — these guard the numbers I say out loud in the video.
 =========================================================================== */
-test('demo: Saturday contest seats 14 and leaves exactly 2, for different reasons', () => {
+test('demo: Saturday contest seats 12 and leaves exactly 4', () => {
   const state = buildSeedState();
   const event = state.events.find((e) => e.id === 'e-band-sat');
   const onTrip = (record) =>
@@ -321,17 +321,41 @@ test('demo: Saturday contest seats 14 and leaves exactly 2, for different reason
     Math.abs(toMinutes(record.timeISO) - toMinutes(event.rideTimeISO)) <= 15;
 
   const result = fillTheGaps({
+    // Chaperone seats are held back for the organizer to assign by hand.
     requests: state.requests.filter(onTrip),
-    offers: state.offers.filter(onTrip),
+    offers: state.offers.filter((o) => !o.manualOnly && onTrip(o)),
     people: state.people,
     neighborhoods: state.neighborhoods,
     existingRides: state.rides,
     settings: state.settings,
   });
 
-  eq(result.newAssignments.length, 14, 'students seated:');
-  eq(result.unmatched.length, 2, 'students left over:');
-  eq(result.unmatched.map((u) => u.reasonCode).sort(), [REASON.CURFEW, REASON.OUT_OF_RANGE]);
+  eq(result.newAssignments.length, 12, 'students seated:');
+  eq(result.unmatched.length, 4, 'students left over:');
+  // Only adults drive at this school, so the two reasons left are the two
+  // that do not depend on a driver's licence age.
+  eq(
+    result.unmatched.map((u) => u.reasonCode).sort(),
+    [REASON.OUT_OF_RANGE, REASON.OUT_OF_RANGE, REASON.SEATS_FULL, REASON.SEATS_FULL]
+  );
+});
+
+test('demo: the four left over fit the chaperone\'s car exactly', () => {
+  const state = buildSeedState();
+  const rivera = state.offers.find((o) => o.driverId === 'c-rivera');
+  ok(rivera, 'the chaperone has an offer');
+  ok(rivera.manualOnly, 'and it is held back from the automatic run');
+  eq(rivera.seats, 4, 'seats in the chaperone car:');
+});
+
+test('demo: nobody under 21 drives', () => {
+  const state = buildSeedState();
+  const drivers = new Set(state.offers.map((o) => o.driverId));
+  for (const id of drivers) {
+    const person = state.people.find((p) => p.id === id);
+    ok(person.age >= 21, `${person.firstName} ${person.lastInitial}. is an adult`);
+    eq(person.driverKind, 'parent', `${person.firstName}'s driver kind:`);
+  }
 });
 
 test('demo: Tuesday evening builds a car with three different activities', () => {
