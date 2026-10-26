@@ -22,10 +22,13 @@ const SCHOOL_PLACE = 'school';
 /** Lat/lng for a place id, falling back to the school. */
 function placeLatLng(state, placeId) {
   const COORDS = {
-    // PLACEHOLDER COORDINATES — same caveat as the neighbourhood list.
-    school: [33.2614, -96.9469],
-    'little-elm': [33.1700, -96.9350],
-    'north-lakes': [33.2290, -97.1500],
+    // >>> PLACEHOLDER COORDINATES — PRAJITH, CHECK THESE <<<
+    // Same caveat as the neighbourhood list in js/seed.js: eyeballed centre
+    // points, only ever compared against each other, never navigated to.
+    // All three are listed in the README so they are easy to find.
+    school: [33.2614, -96.9469],        // PLACEHOLDER — Ray Braswell HS
+    'little-elm': [33.1700, -96.9350],  // PLACEHOLDER — Little Elm HS
+    'north-lakes': [33.2290, -97.1500], // PLACEHOLDER — North Lakes Park, Denton
   };
   return COORDS[placeId] || COORDS[SCHOOL_PLACE];
 }

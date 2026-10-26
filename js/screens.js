@@ -13,7 +13,7 @@ import {
   statusPill, head, notice, emptyState, mapBlock, STATUS_TEXT,
 } from './ui.js';
 import { haversineMiles, toMinutes } from './matching.js';
-import { view, groupShortCode } from './view.js';
+import { view } from './view.js';
 import { notificationsFor } from './notifications.js';
 
 /* ---------------------------------------------------------------------------
@@ -755,12 +755,13 @@ export function signIn() {
       <div class="wordmark">AfterBell<span class="wordmark__dot" aria-hidden="true"></span></div>
       <p>Rides to practices, rehearsals, games and contests — grouped by where
       you live and when your activity starts or ends.</p>
-      <button class="welcome__btn" data-action="demo-signin">Get started</button>
-      <button class="welcome__btn welcome__btn--ghost" data-action="demo-signin">
+      <button class="welcome__btn" data-action="start-demo">Try the demo</button>
+      <button class="welcome__btn welcome__btn--ghost" data-action="start-demo">
         I already have an account
       </button>
       <p class="welcome__note">Free for every student at Ray Braswell High School.
-      Stage 1 has no accounts yet — use the role chips at the top to look around.</p>
+      Accounts arrive in Stage 2 — &ldquo;Try the demo&rdquo; opens the app on a week of
+      sample students so you can use every screen.</p>
     </section>`;
 }
 
@@ -1320,44 +1321,5 @@ export function howItWorks() {
            <li>Names are a first name and a last initial — that is all that is stored.</li>
            <li>A household id, not an address, tells a sibling from a friend.</li>
          </ul>`)}
-    </section>`;
-}
-
-/** A student's confirmed ride cards. */
-export function myRides() {
-  const me = S.currentUser();
-  if (!me) return wrongRole('student');
-
-  const rides = S.state.data.rides
-    .filter((r) => r.riderIds.includes(me.id) || r.driverId === me.id)
-    .sort((a, b) => S.offerById(a.offerId).timeISO.localeCompare(S.offerById(b.offerId).timeISO));
-
-  if (!rides.length) {
-    return `${head('Rides', 'Your ride cards')}
-      ${emptyState('id-card', 'No confirmed rides yet',
-        'Request a ride from an event, then an organizer runs the match.')}`;
-  }
-
-  return `
-    ${head('Rides', 'Your ride cards', 'Each card has its own handoff code.')}
-    <section class="pad">
-      <div class="list">
-        ${rides
-          .map((ride) => {
-            const offer = S.offerById(ride.offerId);
-            const event = S.eventById(ride.eventId);
-            const driver = S.personById(ride.driverId);
-            return `<a class="row" href="#/ride/${esc(ride.id)}">
-              <span class="tile">${icon('car-front')}</span>
-              <span class="row__body">
-                <span class="row__title">${esc(event.title)}</span>
-                <span class="row__meta">${esc(dayLabel(offer.timeISO))} ·
-                  ${esc(formatTime(offer.timeISO))} · ${esc(personName(driver))}</span>
-              </span>
-              <span class="row__end"><strong>${esc(S.handoffCode(ride.id))}</strong></span>
-            </a>`;
-          })
-          .join('')}
-      </div>
     </section>`;
 }

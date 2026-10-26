@@ -30,6 +30,11 @@ export const state = {
   role: 'student',                  // which demo role tab is active
   userId: DEMO_ACCOUNTS.student.id, // who we are "signed in" as
   signedIn: true,
+  // The sample data sits behind "Try the demo" on the welcome screen, so a
+  // first-time visitor reads what AfterBell is before they are dropped into
+  // somebody else's week. Once this is on, the demo bar appears and every
+  // screen works exactly as it does in the walkthrough.
+  demo: false,
   // Set by the last Fill the Gaps run, so the organizer screen can animate
   // the squares and list the reasons. Cleared when you switch events.
   lastFill: null,
@@ -56,6 +61,12 @@ export function logEvent(audience, icon, text) {
 }
 
 export { DEMO_ACCOUNTS, handoffCode };
+
+/** Turn the sample data on. Wired to "Try the demo" on the welcome screen. */
+export function startDemo() {
+  state.demo = true;
+  state.signedIn = true;
+}
 
 /** Throw the demo data away and start over. Wired to "Reset demo". */
 export function resetDemo() {
@@ -190,19 +201,6 @@ export function ridersInRide(ride) {
       activityId: request ? request.activityId : null,
       activityLabel: request ? activityName(request.activityId) : '',
     };
-  });
-}
-
-/** Every car on the same trip as this one (same endpoint, direction, time). */
-export function ridesOnSameTrip(ride) {
-  const offer = offerById(ride.offerId);
-  return state.data.rides.filter((other) => {
-    const o = offerById(other.offerId);
-    return (
-      o.destinationId === offer.destinationId &&
-      o.direction === offer.direction &&
-      o.timeISO === offer.timeISO
-    );
   });
 }
 
@@ -649,14 +647,6 @@ export function previewTrip(eventId) {
     existingRides: d.rides,
     settings: d.settings,
   });
-}
-
-/** The activity each rider is riding for, on a specific trip. */
-export function activityOfRequest(studentId, eventIdHint) {
-  const request = state.data.requests.find(
-    (r) => r.studentId === studentId && r.eventId === eventIdHint
-  );
-  return request ? activityName(request.activityId) : '';
 }
 
 /**

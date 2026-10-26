@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AfterBell">
+  <rect width="64" height="64" rx="14" fill="#C24A00"/>
+  <!-- A bell, for the one after the last one. -->
+  <path d="M32 13c-1.9 0-3.4 1.5-3.4 3.4v1.3c-6 1.6-10.3 7-10.3 13.4v7.2l-2.8 5.2a2 2 0 0 0 1.8 3h29.4a2 2 0 0 0 1.8-3l-2.8-5.2v-7.2c0-6.4-4.3-11.8-10.3-13.4v-1.3c0-1.9-1.5-3.4-3.4-3.4z" fill="#FFF5EF"/>
+  <path d="M26.4 49.5a5.8 5.8 0 0 0 11.2 0z" fill="#FFF5EF"/>
+  <circle cx="46.5" cy="19" r="7.5" fill="#FF6A13" stroke="#C24A00" stroke-width="2.5"/>
+</svg>

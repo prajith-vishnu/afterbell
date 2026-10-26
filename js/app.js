@@ -34,20 +34,36 @@ let flash = null;
 --------------------------------------------------------------------------- */
 function renderDemoBar() {
   const bar = document.getElementById('demobar');
+
+  // Before "Try the demo" there is no sample data on screen, so there is
+  // nothing to label and no role to switch to. The welcome screen is
+  // full-bleed, so the bar stays off there even after the demo is on.
+  const onWelcome = (location.hash || '') === '#/signin';
+  bar.hidden = !S.state.demo || onWelcome;
+  if (bar.hidden) {
+    bar.innerHTML = '';
+    return;
+  }
+
   bar.innerHTML =
-    `<span class="demobar__label">Demo</span>` +
+    `<span class="demobar__label">Demo data</span>` +
     Object.entries(S.DEMO_ACCOUNTS)
       .map(
         ([role, account]) => `<button class="rolechip" role="tab"
           aria-selected="${role === S.state.role}" data-action="set-role" data-role="${esc(role)}"
           title="${esc(account.caption)}">${esc(account.label)}</button>`
       )
-      .join('');
+      .join('') +
+    `<button class="rolechip rolechip--reset" data-action="reset-demo"
+       title="Put the sample data back the way it started">Reset demo</button>`;
 }
 
 function renderTabs() {
   const bar = document.getElementById('tabbar');
   const section = (location.hash || '#/home').replace(/^#\//, '').split('/')[0];
+
+  // The welcome screen is full-bleed and has its own buttons.
+  bar.hidden = section === 'signin';
 
   bar.innerHTML = TABS.map(
     (tab) => `<a class="tab" href="${esc(tab.href)}"
@@ -101,6 +117,13 @@ function screenFor(hash) {
 
 function render() {
   const main = document.getElementById('main');
+
+  // Every screen reads the sample data, so until a visitor has pressed
+  // "Try the demo" the only screen there is to show is the welcome screen.
+  if (!S.state.demo && location.hash !== '#/signin') {
+    location.replace('#/signin');
+    return;
+  }
 
   let html = screenFor(location.hash);
   if (html === null) {
@@ -198,8 +221,9 @@ document.addEventListener('click', (event) => {
       render();
       return;
 
-    case 'demo-signin':
-      flash = 'Stage 1 has no accounts yet — dropping you into the demo.';
+    case 'start-demo':
+      S.startDemo();
+      flash = 'You are in the demo, on a week of sample students. Switch roles at the top.';
       location.hash = '#/home';
       render();
       return;
@@ -373,10 +397,15 @@ document.addEventListener('change', (event) => {
 
 /* ---------------------------------------------------------------------------
    BOOT
-   `?role=organizer` opens straight into a role, handy when recording.
+   A plain visit opens on the welcome screen. `?role=organizer` is a shortcut
+   straight into one role of the demo, for linking someone to a single view.
 --------------------------------------------------------------------------- */
 const roleParam = new URLSearchParams(location.search).get('role');
-if (roleParam && S.DEMO_ACCOUNTS[roleParam]) S.setRole(roleParam);
+if (roleParam && S.DEMO_ACCOUNTS[roleParam]) {
+  S.startDemo();
+  S.setRole(roleParam);
+  if (!location.hash) location.replace('#/home');
+}
 
 window.addEventListener('hashchange', () => {
   render();

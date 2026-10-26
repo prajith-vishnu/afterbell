@@ -5,6 +5,10 @@
 A ride-matching web app for students at Ray Braswell High School, Denton ISD.
 Built for the Congressional App Challenge.
 
+**[Open the live app](https://prajith-vishnu.github.io/afterbell/)** — press
+**Try the demo** on the welcome screen to use it with a week of sample
+students, no sign-up.
+
 ---
 
 ## The problem
@@ -35,6 +39,38 @@ Nobody puts them in the same car, because no one is looking at the same list.
 AfterBell groups ride requests by **where the car meets**, **which direction
 it's going**, and **when** — and deliberately *not* by activity. That one
 decision is the whole product.
+
+## Trying the demo
+
+The app has no accounts yet, so everything runs on a built-in week of sample
+students. Press **Try the demo** on the welcome screen and you are in.
+
+Once you are in, a **Demo data** bar sits at the top of every screen with:
+
+- a **role switcher** — Student, Parent, Driver and Organizer (the director
+  view). Switching role is the same as signing in as that person;
+- a **Reset demo** button, which puts the sample week back exactly as it
+  started. Nothing you do in the demo is permanent, so click freely.
+
+### See Fill the Gaps work, in four steps
+
+1. Switch to **Organizer** (Mr. Moreno, Director of Bands).
+2. In **Which trip**, choose **SAT 10/31 6:00a — UIL Area Morning Rehearsal**.
+   The dial reads **7 of 34 have rides**.
+3. Press **Fill the Gaps**. It climbs to **32 of 34**, the ticks fill in the
+   order the algorithm seated people, and a *What just happened* card says:
+   *Seated 25 students from your roster into 9 cars. It put 7 students from
+   Volleyball in those same cars.* Those 7 are the point — they are not on the
+   band roster, and nothing else would have put them in these cars.
+4. Switch to **Student** (Marcus T., trumpets). He had no ride a moment ago;
+   now he is in **Lisa L.'s** car with **Jada W.** — a volleyball parent
+   driving a band kid, because they live in the same neighborhood and leave
+   within fifteen minutes of each other. Open the ride card to see the handoff
+   code.
+
+Also worth a look: **Coach Rivera**, the chaperone with four seats, appears on
+the organizer's *assign a driver* list for the students the algorithm will not
+seat by law — the human override for when the rules run out.
 
 ### Features
 
@@ -118,6 +154,28 @@ system, so it gets spent last.
 - **Delete my account and data** really deletes: ride requests, seat offers,
   cars, roster memberships and notifications all go.
 
+## Safety
+
+Privacy is only half of it. The rest is who is allowed to drive whom.
+
+- **A parent has to approve a student's account** before that student can
+  request or accept a ride. The check sits in `state.js`, so an unapproved
+  student cannot create a request at all and can never be matched into a car.
+- **Only parents and staff can offer seats** in the sample data, and the
+  matcher applies the Texas provisional-licence rules to any teen driver: at
+  most one non-family passenger under 21 in their first 12 months, and no trip
+  between midnight and 5 a.m. The curfew check covers the **whole drive**, so
+  an 11:30 p.m. pickup landing at 12:15 a.m. is refused.
+- **Handoff codes.** Rider and driver each see the same 3-digit number. If it
+  does not match, it is not your car. The app says exactly that on the card.
+- **Nobody is quietly dropped.** Every student the algorithm cannot seat comes
+  back with a sentence naming the rule that stopped it, and they stay on the
+  exported ride plan with that reason attached.
+- **A human can always override.** When the rules run out of legal options, the
+  organizer can assign an adult driver by hand. That override skips the detour
+  preference but still enforces seat counts and the licence rules, because
+  those are law rather than preference.
+
 ## Tech stack
 
 - **Plain HTML, CSS and JavaScript** (ES modules). No framework, no build step,
@@ -125,15 +183,43 @@ system, so it gets spent last.
 - **Leaflet** with **OpenStreetMap** tiles for the maps. No API key.
 - **Lucide** for icons.
 - **Plus Jakarta Sans** from Google Fonts.
-- **Firebase** (Authentication, Firestore, Hosting) — planned for Stage 2;
-  Stage 1 runs entirely on local sample data.
+- **Firebase** (Authentication, Firestore, Hosting) — planned for Stage 2.
+  Stage 1 runs entirely on local sample data: there is no Firebase project, no
+  SDK, no config and no API key anywhere in this repository.
+
+Everything is pinned to an exact version and loaded from a public CDN. Nothing
+here needs an API key, and the app makes no network calls of its own — the only
+requests a browser makes are the font, the icon library, Leaflet, and
+OpenStreetMap map tiles.
+
+### Credits
+
+- [**Leaflet**](https://leafletjs.com) 1.9.4 — BSD 2-Clause.
+- [**OpenStreetMap**](https://www.openstreetmap.org/copyright) map tiles — map
+  data © OpenStreetMap contributors, ODbL. Tiles are attributed in-app.
+- [**Lucide**](https://lucide.dev) 0.460.0 icons — ISC.
+- [**Plus Jakarta Sans**](https://fonts.google.com/specimen/Plus+Jakarta+Sans)
+  — SIL Open Font License 1.1.
+
+No third-party UI kit or template was used. The screens, the colour system and
+every component class in `css/app.css` were written for this project.
+
+### AI use
+
+I used AI tools (Claude) while building AfterBell, under my direction. I decided
+what the app should do, how the matching should work, which rules it had to
+respect, and what every screen should say; I used AI as a coding assistant to
+help write and refactor the code, talk through approaches, and check my work.
+The Texas provisional-licence rules, the privacy design, the sample data and the
+product decisions are mine, and I have read and understood every file in this
+repository.
 
 ### Project layout
 
 | File | What it is |
 | --- | --- |
 | `js/matching.js` | The algorithm. Pure, dependency-free, tested. |
-| `js/matching.test.js` | 23 tests. Run in a browser or with Node. |
+| `js/matching.test.js` | 31 tests. Run in a browser or with Node. |
 | `js/seed.js` | All sample data: people, neighborhoods, events, offers. |
 | `js/state.js` | The only place data changes. Stage 2 swaps this for Firestore. |
 | `js/screens.js` | One function per screen, each returning HTML. |
@@ -141,7 +227,7 @@ system, so it gets spent last.
 | `js/map.js` | Leaflet setup and the map markers. |
 | `js/export.js` | The ride-plan CSV. |
 | `js/notifications.js` | The Rides tab, built from real app events. |
-| `film.html`, `js/film.js`, `css/film.css` | The demo film, played start to finish for recording. |
+| `js/view.js` | What the viewer is currently looking at. Never ride data. |
 
 ## Running it
 
@@ -156,10 +242,9 @@ Then open **http://localhost:8000**.
 
 | URL | What you get |
 | --- | --- |
-| `/` | The app. Use the demo chips at the top to switch role. |
-| `/?role=organizer` | Opens straight into a role. |
-| `/tests.html` | The algorithm test suite. |
-| `/film.html` | The demo film. Press Start. `?seg=N` previews one segment, `?check=1` self-checks. |
+| `/` | The app. Press **Try the demo**, then use the role chips at the top. |
+| `/?role=organizer` | A shortcut straight into one role of the demo. |
+| `/tests.html` | The algorithm test suite, run in the browser. |
 
 Run the tests from a terminal instead:
 
@@ -169,22 +254,24 @@ node js/matching.test.js
 
 ## Deploying
 
-### Option A — GitHub Pages (no setup needed)
+### Option A — GitHub Pages (this is what is live now)
 
-1. Create a repository on GitHub. Don't add a README; this project has one.
-2. In the project folder:
-   ```bash
-   git remote add origin https://github.com/YOUR-USERNAME/afterbell.git
-   git branch -M main
-   git push -u origin main
-   ```
-3. On GitHub, open **Settings → Pages**.
-4. Under **Source**, choose **Deploy from a branch**.
-5. Pick branch **main** and folder **/ (root)**, then **Save**.
-6. Wait about a minute. Your site appears at
-   `https://YOUR-USERNAME.github.io/afterbell/`.
+AfterBell is already deployed this way, from the `main` branch at the repository
+root, and serves at
+<https://prajith-vishnu.github.io/afterbell/>.
 
-Everything here is static, so nothing else is required.
+Everything here is static — no build step, no bundler — so **publishing an
+update is just a push**:
+
+```bash
+git add -A
+git commit -m "Describe the change"
+git push
+```
+
+Pages rebuilds in about a minute. To set this up again from scratch on another
+account: push the project, then **Settings → Pages → Source → Deploy from a
+branch**, branch `main`, folder `/ (root)`, and **Save**.
 
 ### Option B — Firebase Hosting
 
@@ -217,6 +304,49 @@ Everything here is static, so nothing else is required.
 
 To update the site later, just run `firebase deploy --only hosting` again.
 
+## Placeholder coordinates
+
+Every coordinate in the app is an **eyeballed centre point**, not a surveyed
+one, and each is still marked `PLACEHOLDER` in the source. They only ever get
+compared against each other ("is Savannah closer to Paloma Creek than to Oak
+Point?"), never navigated to, so they do not need to be exact — but they are
+worth a check. `grep -rn PLACEHOLDER .` finds all sixteen.
+
+**13 neighbourhood centres** in [`js/seed.js`](js/seed.js):
+
+| Neighbourhood | lat | lng |
+| --- | --- | --- |
+| Savannah | 33.2546 | -96.9230 |
+| Paloma Creek | 33.2470 | -96.9690 |
+| Paloma Creek South | 33.2385 | -96.9705 |
+| Providence Village | 33.2365 | -96.9480 |
+| Winn Ridge | 33.2290 | -96.9265 |
+| Union Park | 33.2240 | -96.9800 |
+| Sandbrock Ranch | 33.3065 | -96.9900 |
+| Arrow Brooke | 33.2900 | -96.9710 |
+| Silverado | 33.2795 | -96.9450 |
+| Cross Oak Ranch | 33.2160 | -96.9880 |
+| Aubrey | 33.3040 | -96.9860 |
+| Oak Point | 33.1870 | -96.9920 |
+| Lakewood Village | 33.1600 | -96.9700 |
+
+**3 endpoint coordinates** in [`js/map.js`](js/map.js):
+
+| Place | lat | lng |
+| --- | --- | --- |
+| Ray Braswell HS | 33.2614 | -96.9469 |
+| Little Elm HS | 33.1700 | -96.9350 |
+| North Lakes Park, Denton | 33.2290 | -97.1500 |
+
+To correct one: open a map, drop a pin roughly in the middle, copy the two
+numbers over the old ones and delete the `PLACEHOLDER` comment. Nothing else
+has to change. For scale, around here 0.01 degrees of latitude is about
+0.69 miles and 0.01 degrees of longitude is about 0.58 miles.
+
+## License
+
+[MIT](LICENSE).
+
 ---
 
-Built by **Prajith Vishnu**, Ray Braswell High School, Denton ISD.
+Built by **Prajith Vishnu, Braswell High School.**

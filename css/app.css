@@ -29,9 +29,9 @@
   --surface: #FFF5EF;      /* light warm fills */
   --surface-2: #FFE9DC;    /* selected rows, soft highlights */
   --line: #F0E6DE;
-  /* Secondary text. The kit's #8C8C8C measures only 3.36:1 on white, which
-     fails AA for body text, and it is used on every screen. #6E6E6E is the
-     same mid grey a shade deeper and measures 5.10:1. */
+  /* Secondary text. The mid grey this started as, #8C8C8C, measures only
+     3.36:1 on white, which fails AA for body text, and it is used on every
+     screen. #6E6E6E is the same grey a shade deeper and measures 5.10:1. */
   --muted: #6E6E6E;
 
   --orange: #FF6A13;       /* the accent, for fills */
@@ -85,7 +85,6 @@ p { margin: 0; }
 a { color: var(--black); text-underline-offset: 3px; }
 
 :focus-visible { outline: 2px solid var(--orange-deep); outline-offset: 2px; border-radius: 8px; }
-.on-black :focus-visible, .sheet--dark :focus-visible { outline-color: var(--white); }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -119,7 +118,6 @@ a { color: var(--black); text-underline-offset: 3px; }
 .pad { padding: 0 16px; }
 .pad + .pad { margin-top: 24px; }
 .stack { display: grid; gap: 12px; }
-.stack--lg { display: grid; gap: 20px; }
 
 /* --------------------------------------------------------------------------
    3. DEMO BAR — the role switcher for the demo.
@@ -142,6 +140,12 @@ a { color: var(--black); text-underline-offset: 3px; }
 }
 .rolechip:hover { border-color: var(--black); color: var(--black); }
 .rolechip[aria-selected="true"] { background: var(--black); border-color: var(--black); color: var(--white); }
+/* Reset sits apart from the role chips: it is an action, not a place to be. */
+.rolechip--reset { margin-left: auto; color: var(--orange-text); border-color: var(--orange-tint); background: var(--orange-tint); }
+.rolechip--reset:hover { border-color: var(--orange-text); color: var(--orange-text); }
+
+/* Both bars are flex, so `hidden` needs saying out loud. */
+.demobar[hidden], .tabbar[hidden] { display: none; }
 
 /* --------------------------------------------------------------------------
    4. SCREEN HEADER
@@ -243,14 +247,6 @@ a { color: var(--black); text-underline-offset: 3px; }
 .btn--danger { background: var(--white); color: #C62828; border-color: #F3C9C6; }
 .btn .i { width: 18px; height: 18px; }
 
-.iconbtn {
-  width: var(--tap); height: var(--tap); flex: none; padding: 0;
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 50%; border: 1px solid var(--line);
-  background: var(--white); color: var(--black); cursor: pointer;
-}
-.iconbtn:hover { background: var(--orange-tint); }
-.iconbtn .i { width: 20px; height: 20px; }
 
 /* The big grey "where to" pill on the home screen. */
 .searchpill {
@@ -281,7 +277,6 @@ a { color: var(--black); text-underline-offset: 3px; }
 button.chip { cursor: pointer; }
 button.chip:hover { border-color: var(--orange); }
 .chip[aria-pressed="true"] { background: var(--orange-ink); border-color: var(--orange-ink); color: var(--white); }
-.chip--quiet { background: var(--surface); border-color: var(--surface); color: var(--muted); }
 .chip--done { background: var(--surface); border-color: var(--surface); color: var(--black); }
 .chip--done .i { width: 15px; height: 15px; }
 
@@ -307,7 +302,6 @@ button.chip:hover { border-color: var(--orange); }
 .row:last-child { border-bottom: 0; }
 .row--static { cursor: default; }
 .row:hover:not(.row--static) { background: var(--surface); }
-.row--selected { background: var(--orange-tint); border: 2px solid var(--orange); border-radius: var(--r-tile); padding: 12px; }
 
 /* Square grey icon tile at the start of a row. */
 .tile {
@@ -364,7 +358,6 @@ button.chip:hover { border-color: var(--orange); }
 }
 .avatar--sm { width: 34px; height: 34px; font-size: 12px; }
 .avatar--grey { background: var(--surface); color: var(--black); }
-.avatar--dark { background: var(--black); color: var(--white); }
 
 /* "Riding with" — avatar above, activity label under it. */
 .people { display: flex; flex-wrap: wrap; gap: 14px; }
@@ -511,8 +504,6 @@ select { padding-right: 36px; }
 .kv dt { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .kv dd { margin: 0; font-size: 16px; }
 
-.nowrap { white-space: nowrap; }
-.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 @media (prefers-reduced-motion: reduce) {
   .dial__tick.is-filling, .pin-search::after { animation: none; }
@@ -520,7 +511,7 @@ select { padding-right: 36px; }
 }
 
 /* --------------------------------------------------------------------------
-   20. KIT PIECES — the hero card, saved rows, quick tiles, stat tiles
+   20. CARDS AND TILES — the hero card, saved rows, quick tiles, stat tiles
    -------------------------------------------------------------------------- */
 
 /* Saved destinations: a small orange dot, a name, a sub-label. */
@@ -570,14 +561,6 @@ select { padding-right: 36px; }
 .setting--danger { color: #C62828; }
 .setting--danger .tile { color: #C62828; background: #FDECEA; }
 .setting__chev { margin-left: auto; color: var(--muted); }
-
-/* A floating white label over the map. */
-.maplabel {
-  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
-  z-index: 2; background: var(--white); border-radius: var(--r-pill);
-  padding: 9px 16px; font-size: 14px; font-weight: 700;
-  box-shadow: var(--shadow-soft); white-space: nowrap;
-}
 
 /* Full-screen orange welcome. */
 .welcome {

@@ -1,2 +1,30 @@
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node (AfterBell has no build step, but tooling may be installed locally)
 node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Firebase, if Stage 2 hosting is set up here later
+.firebase/
+firebase-debug.log*
+*-debug.log
+
+# Environment and credentials — never commit these
+.env
+.env.*
+*.pem
+*.key
+serviceAccountKey*.json
+google-services.json

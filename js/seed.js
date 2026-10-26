@@ -26,6 +26,10 @@
    NEIGHBORHOODS
    ===========================================================================
    >>> PLACEHOLDER COORDINATES — PRAJITH, CHECK THESE <<<
+   All 13 rows below are still marked PLACEHOLDER, and so are the 3 endpoint
+   coordinates in js/map.js. Every one of them is listed in the README under
+   "Placeholder coordinates", so `grep -rn PLACEHOLDER .` finds the lot.
+
    Each lat/lng below is an eyeballed center point for the neighborhood, not a
    surveyed one. They do not need to be exact. The algorithm only ever uses
    them to compare neighborhoods against each other ("is Savannah closer to

@@ -24,15 +24,3 @@ export const view = {
   /** Organizer: which unmatched student's "assign a driver" list is open. */
   assignOpenFor: null,
 };
-
-/**
- * Short label for a circular group filter button.
- * One word  -> first three letters ("Trumpets" -> "Tru")
- * Two words -> initials ("Low Brass" -> "LB")
- * The full name is always in the button's aria-label, so nothing is lost.
- */
-export function groupShortCode(group) {
-  const words = group.trim().split(/\s+/);
-  if (words.length === 1) return words[0].slice(0, 3);
-  return words.map((w) => w[0].toUpperCase()).join('').slice(0, 3);
-}
