@@ -1,4 +1,4 @@
-# AfterBell
+<img src="brand/afterbell-logo.svg" alt="AfterBell — by Prajith Vishnu" width="340">
 
 **Every spot filled.**
 
@@ -342,6 +342,29 @@ To correct one: open a map, drop a pin roughly in the middle, copy the two
 numbers over the old ones and delete the `PLACEHOLDER` comment. Nothing else
 has to change. For scale, around here 0.01 degrees of latitude is about
 0.69 miles and 0.01 degrees of longitude is about 0.58 miles.
+
+## Brand
+
+The mark is a map pin with a school bell cut out of it as negative space — the
+two halves of what this app does, in one shape. It is drawn as a single flat
+path with `fill-rule="evenodd"`, so the bell is the pin's own colour showing
+through rather than a second shape stacked on top. No gradients, no shadows,
+no 3D. Orange `#FF6A13`, text in `#1A1A1A`.
+
+| File | What it is |
+| --- | --- |
+| [`brand/afterbell-logo.svg`](brand/afterbell-logo.svg) | Full logo: mark, wordmark, byline |
+| [`brand/afterbell-logo-dark.svg`](brand/afterbell-logo-dark.svg) | The same lockup white-on-dark |
+| [`brand/afterbell-mark.svg`](brand/afterbell-mark.svg) | The symbol on its own |
+| [`brand/afterbell-mark-white.svg`](brand/afterbell-mark-white.svg) | The symbol in white, for dark surfaces |
+| [`brand/afterbell-cover.jpg`](brand/afterbell-cover.jpg) | Cover image, 600×800 |
+| [`brand/afterbell-cover.svg`](brand/afterbell-cover.svg) | The cover as vector |
+| [`favicon.svg`](favicon.svg) | The mark, as the site icon |
+
+The wordmark is Plus Jakarta Sans Bold and the byline is Plus Jakarta Sans
+Medium, both **converted to outline paths** rather than left as `<text>`. That
+means every file renders identically everywhere — on GitHub, in a browser, in
+a slide deck — without shipping a font or relying on one being installed.
 
 ## License
 
